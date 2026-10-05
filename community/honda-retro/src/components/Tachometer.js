@@ -42,14 +42,18 @@ const redlineFor = (rpmM, redline) =>
  */
 export function Tachometer({ rpmM = 8, redline } = {}) {
   const red = redlineFor(rpmM, redline);
-  const redX = (red / (rpmM * 1000)) * WIDTH;
+  // Red zone starts at the cell that lights at the redline (cell 8 for 8000),
+  // which sits one slot left of its thousand on the axis
+  const redCell = red / 1000;
+  const redX = ((redCell - 1) / rpmM) * WIDTH;
 
   // Cell k (1…rpmM) sits over the (k-1)000–k000 stretch of the bars and
   // lights up once the RPM passes k000, like a counter filling in
-  // Each cell takes the bar gradient's color at its position (cream → red)
+  // Each cell takes the bar gradient's color at its position (cream → orange);
+  // cells in the red zone glow red
   const cells = Array.from({ length: rpmM }, (_, i) => {
-    const inRed = (i + 1) * 1000 > red;
-    const rgb = colorAt((i + 0.5) / rpmM).join(",");
+    const inRed = i + 1 >= redCell;
+    const rgb = inRed ? "255,45,70" : colorAt((i + 0.5) / rpmM).join(",");
     return `
       <div class="tach__cell${inRed ? " tach__cell--red" : ""}"
         style="left:${(i / rpmM) * WIDTH}px;width:${WIDTH / rpmM - 7}px;--cell-rgb:${rgb}">
