@@ -1,0 +1,30 @@
+/* Red glow creeping in from the dash edges as the revs climb.
+   Two pre-painted vignette layers; JS only changes their opacity
+   (cheap to composite on the ARM board, no repaint per frame):
+   - edge:   a tight red rim, fades in from the start of the range
+   - spread: a wide vignette that reaches toward the center, comes in later */
+
+.redline-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.redline-glow::before,
+.redline-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  will-change: opacity;
+}
+
+.redline-glow::before {
+  background: radial-gradient(ellipse 75% 85% at 50% 50%, transparent 70%, rgba(255, 25, 45, 0.25) 88%, rgba(255, 25, 45, 0.6) 100%);
+  opacity: var(--redline-edge, 0);
+}
+
+.redline-glow::after {
+  background: radial-gradient(ellipse 70% 80% at 50% 50%, transparent 35%, rgba(255, 20, 40, 0.18) 70%, rgba(255, 20, 40, 0.45) 100%);
+  opacity: var(--redline-spread, 0);
+}

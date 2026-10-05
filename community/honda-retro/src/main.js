@@ -9,6 +9,7 @@ import { Speedometer, createSpeedometerController } from "./components/Speedomet
 import { Tachometer, createTachometerController } from "./components/Tachometer.js";
 import { SegmentGauge, createSegmentGaugeController } from "./components/SegmentGauge.js";
 import { WarningLights, createWarningLightsController } from "./components/WarningLights.js";
+import { RedlineGlow, createRedlineGlowController } from "./components/RedlineGlow.js";
 
 // Tree-shaken in production: Vite replaces import.meta.env.DEV with false
 // and Rollup removes the dead branch + the unused import entirely.
@@ -32,6 +33,7 @@ const callback = () => {
       ${SegmentGauge("fuel")}
     </div>
     <div class="slot slot--lamps">${WarningLights()}</div>
+    ${RedlineGlow()}
     <div class="slot slot--speed">
       ${Speedometer()}
       <span class="speed-unit">km/h</span>
@@ -47,6 +49,7 @@ const callback = () => {
   const battery = createSegmentGaugeController("battery");
   const fuel = createSegmentGaugeController("fuel");
   const lamps = createWarningLightsController();
+  const redlineGlow = createRedlineGlowController({ from: 7000, to: 9000 });
 
   let [useCAN, useCANForRPM, useCANForVSS, useCANForCLT] = [false, false, false, false];
   const checkSource = () => {
@@ -62,7 +65,9 @@ const callback = () => {
   const bindRealtimeData = (now) => {
     if (!checkCache("useCAN", useCanChannel())) checkSource();
 
-    tach.update(useCANForRPM ? canData.rpm : safeReturn(basicData, "rpm"), now);
+    const rpm = useCANForRPM ? canData.rpm : safeReturn(basicData, "rpm");
+    tach.update(rpm, now);
+    redlineGlow.update(rpm);
     speedometer.update(
       useCANForVSS ? canData.vss : aSpd < 2 ? (basicData.kmhF ?? basicData.kmh) : basicData.kmh,
     );
