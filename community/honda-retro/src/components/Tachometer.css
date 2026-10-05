@@ -6,12 +6,23 @@
   position: relative;
   width: var(--tach-w);
   height: 295px;
+  /* Own stacking context: layers below are ordered explicitly and the
+     soft-light numbers only blend with the cells, not with the page */
+  isolation: isolate;
+}
+
+/* Layer order, back to front: cells → bars → base line */
+.tach__cells {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 /* --- Cells (one per 1000 RPM) --- */
 
 .tach__cell {
   position: absolute;
+  isolation: isolate;
   top: 0;
   height: 176px;
   border-radius: 8px 8px 0 0;
@@ -77,6 +88,7 @@
 
 .tach__bars {
   position: absolute;
+  z-index: 2;
   left: 0;
   top: 132px;
   width: 100%;
@@ -92,13 +104,13 @@
   transform-origin: bottom center;
   transform: scaleY(0.0795); /* 12 / 151, resting height */
   transition: transform 90ms linear;
-  will-change: transform;
 }
 
 /* --- Base line --- */
 
 .tach__base {
   position: absolute;
+  z-index: 3;
   left: 0;
   top: 290px;
   width: 100%;
