@@ -23,6 +23,7 @@ const callback = () => {
   // --- Mount: each part sits in its own slot of the 1280×480 layout ---
   document.getElementById("container").innerHTML = `
     <div class="slot slot--turn-left">${TurnSignal("left")}</div>
+    <div class="slot slot--logo"><img src="icons/honda-logo.svg" alt="" onerror="this.remove()" /></div>
     <div class="slot slot--turn-right">${TurnSignal("right")}</div>
     <div class="slot slot--tach">${Tachometer({ rpmM })}</div>
     <div class="slot slot--gauges">
@@ -31,10 +32,7 @@ const callback = () => {
       ${SegmentGauge("fuel")}
     </div>
     <div class="slot slot--lamps">${WarningLights()}</div>
-    <div class="slot slot--speed">
-      ${Speedometer()}
-      <span class="speed-unit">km/h</span>
-    </div>
+    <div class="slot slot--speed">${Speedometer()}</div>
   `;
 
   // --- Controllers (DOM refs cached once, never queried inside the loop) ---

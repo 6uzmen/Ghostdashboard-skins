@@ -1,8 +1,6 @@
-/* Dash layout, 1280×480 on black, from Figma 490-10.
-   Positions are the Figma ones (relative to the dash frame) where the part
-   was placed there; the rest are provisional until the design places them.
-   Free areas for parts still to come: top band (y 0–95) and the bottom
-   strip between the lamps and the gauges (y ~405–480). */
+/* Dash layout, 1280×480 on black. Positions come from the full-dash Figma
+   frame (472-3), relative to the frame. Still to come: the boxed odometer
+   (x 578 y 416, 137×33). */
 
 body,
 html,
@@ -34,30 +32,46 @@ html,
   top: 404px;
 }
 
-/* Provisional: turn signals in the top corners */
+/* Figma: HONDA logo centered on top, x 543 y 27, 197×24.
+   The SVG is exported from Figma into icons/honda-logo.svg. */
+.slot--logo {
+  left: 543px;
+  top: 27px;
+  width: 197px;
+  height: 24px;
+}
+
+.slot--logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Figma: turn chevrons flank the logo at 52×24, 50px from it on each side.
+   The SVG has glow padding around the chevrons, so the box is offset. */
+.slot--turn-left,
+.slot--turn-right {
+  top: 22px;
+}
+
 .slot--turn-left {
-  left: 40px;
-  top: 28px;
+  left: 440px;
 }
 
 .slot--turn-right {
-  right: 40px;
-  top: 28px;
+  left: 788px;
 }
 
-/* Provisional: speed under the tachometer, centered on the dash */
+.slot--turn-left .turn-signal svg,
+.slot--turn-right .turn-signal svg {
+  width: 55px;
+  height: 35px;
+}
+
+/* Figma: speed at x 944 y 409, about 76×47 (digits scaled down from 48px) */
 .slot--speed {
-  left: 50%;
-  top: 404px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.speed-unit {
-  font-family: 'Digital Numbers', monospace;
-  font-size: 12px;
-  letter-spacing: 1px;
-  color: #949080;
+  left: 944px;
+  top: 405px;
+  transform: scale(0.66);
+  transform-origin: top left;
 }
