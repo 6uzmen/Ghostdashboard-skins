@@ -46,11 +46,13 @@ export function Tachometer({ rpmM = 8, redline } = {}) {
 
   // Cell k (1…rpmM) sits over the (k-1)000–k000 stretch of the bars and
   // lights up once the RPM passes k000, like a counter filling in
+  // Each cell takes the bar gradient's color at its position (cream → red)
   const cells = Array.from({ length: rpmM }, (_, i) => {
     const inRed = (i + 1) * 1000 > red;
+    const rgb = colorAt((i + 0.5) / rpmM).join(",");
     return `
       <div class="tach__cell${inRed ? " tach__cell--red" : ""}"
-        style="left:${(i / rpmM) * WIDTH}px;width:${WIDTH / rpmM - 7}px">
+        style="left:${(i / rpmM) * WIDTH}px;width:${WIDTH / rpmM - 7}px;--cell-rgb:${rgb}">
         <span class="tach__num">${i + 1}</span>
       </div>`;
   }).join("");
