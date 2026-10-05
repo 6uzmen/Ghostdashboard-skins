@@ -10,7 +10,7 @@ export function Speedometer() {
   return `
     <div id="speedo" data-tier="0">
       ${SLOTS.map((slot) => `
-        <div class="spd-digit ${slot}">
+        <div class="spd-digit ${slot}${slot === "units" ? "" : " ghost"}">
           <span class="spd-glow">0</span>
           <span class="spd-main">0</span>
         </div>

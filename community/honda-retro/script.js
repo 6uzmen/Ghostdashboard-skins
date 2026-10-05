@@ -18,7 +18,7 @@
   `}const ct=t=>{const o=Math.min($.length,Math.floor(t/j)+1);return t>=G-q?$.map(()=>0):$.map((a,e)=>e<o?o-e:0)};function W(t){const o=document.getElementById(`turn${t}`),a=o?Array.from(o.querySelectorAll(".chevron")):[];let e=null,n="";const i=l=>{const c=l.join("");c!==n&&(n=c,a.forEach((p,r)=>{p.dataset.level=l[r]}))};return{update(l,c){if(Number(l)!==0){e=null,i($.map(()=>0));return}e===null&&(e=c),i(ct((c-e)%G))}}}const X=[0,50,100,140,180,200],dt=["hundreds","tens","units"];function pt(){return`
     <div id="speedo" data-tier="0">
       ${dt.map(t=>`
-        <div class="spd-digit ${t}">
+        <div class="spd-digit ${t}${t==="units"?"":" ghost"}">
           <span class="spd-glow">0</span>
           <span class="spd-main">0</span>
         </div>
@@ -29,7 +29,7 @@
         style="left:${r/t*S}px;width:${S/t-7}px;--cell-rgb:${g}">
         <span class="tach__num">${r+1}</span>
       </div>`}).join(""),c=Array.from({length:_},(p,r)=>{const d=S/_,g=J(i,(r+.5)/_).join(",");return`<span class="tach__bar" style="left:${r*d+(d-9.46)/2}px;--bar-rgb:${g}"></span>`}).join("");return`
-    <div id="tachometer" class="tach" style="--tach-w:${S}px">
+    <div id="tachometer" class="tach is-idle" style="--tach-w:${S}px">
       <div class="tach__cells">${l}</div>
       <div class="tach__bars">${c}</div>
       <div class="tach__base">
@@ -59,7 +59,7 @@
 `,_t=`<svg width="19" height="20" viewBox="0 0 19 20" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path id="Vector" fill-rule="evenodd" clip-rule="evenodd" d="M18.2017 4.69231L13.8908 0.538462L12.6933 1.76923L15.0882 4.07692C14.0504 4.46154 13.2521 5.46154 13.2521 6.69231C13.2521 8.23077 14.5294 9.46154 16.1261 9.46154C16.5252 9.46154 16.9244 9.38462 17.3235 9.23077V17.2308C17.3235 17.8462 16.7647 18.3077 16.1261 18.3077C15.4874 18.3077 15.0084 17.8462 15.0084 17.2308V12.2308C15.0084 11 13.9706 10 12.6933 10H11.5756V2.23077C11.5756 1 10.5378 0 9.2605 0H2.31513C1.03782 0 0 1 0 2.23077V20H11.5756V11.6923H13.2521V17.2308C13.2521 18.7692 14.5294 20 16.1261 20C17.7227 20 19 18.7692 19 17.2308V6.69231C19 5.92308 18.6807 5.23077 18.2017 4.69231ZM9.2605 7.76923H2.31513V2.23077H9.2605V7.76923ZM16.1261 7.76923C15.4874 7.76923 15.0084 7.30769 15.0084 6.69231C15.0084 6.07692 15.4874 5.53846 16.1261 5.53846C16.7647 5.53846 17.3235 6.07692 17.3235 6.69231C17.3235 7.30769 16.7647 7.76923 16.1261 7.76923Z" fill="currentColor"/>
 </svg>
-`,tt=23,yt=[[0,[63,123,255]],[.45,[94,200,255]],[.7,[255,214,102]],[.85,[255,156,69]],[1,[255,69,69]]],et=[[0,[255,122,61]],[.2,[255,156,69]],[.45,[255,214,102]],[.9,[255,243,196]],[1,[255,251,232]]],at={battery:{icon:xt,stops:et,min:10,max:16,format:t=>t.toFixed(1)},temp:{icon:vt,stops:yt,min:0,max:110,unit:"c",hotAt:100,format:t=>String(Math.round(t))},fuel:{icon:_t,stops:et,min:0,max:100,lowAt:20,format:t=>`${Math.round(t)}%`}},wt=(t,o,a)=>t.map((e,n)=>Math.round(e+(o[n]-e)*a)),Ct=(t,o)=>{for(let a=1;a<t.length;a++){const[e,n]=t[a];if(o<=e){const[i,l]=t[a-1];return wt(l,n,(o-i)/(e-i))}}return t[t.length-1][1]};function T(t,o=`gauge-${t}`){const{icon:a,unit:e}=at[t],n=Array.from({length:tt},()=>'<span class="seg-gauge__seg"></span>').join("");return`
+`,tt=23,yt=[[0,[63,123,255]],[.45,[94,200,255]],[.7,[255,214,102]],[.85,[255,156,69]],[1,[255,69,69]]],et=[[0,[255,122,61]],[.2,[255,156,69]],[.45,[255,214,102]],[.9,[255,243,196]],[1,[255,251,232]]],at={battery:{icon:xt,stops:et,min:10,max:16,format:t=>t.toFixed(1)},temp:{icon:vt,stops:yt,min:0,max:110,unit:"c",hotAt:100,format:t=>String(Math.round(t))},fuel:{icon:_t,stops:et,min:0,max:100,lowAt:20,format:t=>`${Math.round(t)}%`}},wt=(t,o,a)=>t.map((e,n)=>Math.round(e+(o[n]-e)*a)),Ct=(t,o)=>{for(let a=1;a<t.length;a++){const[e,n]=t[a];if(o<=e){const[i,l]=t[a-1];return wt(l,n,(o-i)/(e-i))}}return t[t.length-1][1]};function T(t,o=`gauge-${t}`){const{icon:a,unit:e}=at[t],n=Array.from({length:tt},()=>'<span class="seg-gauge__seg" data-depth="off"></span>').join("");return`
     <div id="${o}" class="seg-gauge seg-gauge--${t}">
       <div class="seg-gauge__icon">${a}</div>
       <div class="seg-gauge__bar">${n}</div>

@@ -75,7 +75,7 @@ export function SegmentGauge(type, id = `gauge-${type}`) {
   const { icon, unit } = TYPES[type];
   const segments = Array.from(
     { length: SEGMENTS },
-    () => `<span class="seg-gauge__seg"></span>`,
+    () => `<span class="seg-gauge__seg" data-depth="off"></span>`,
   ).join("");
 
   return `

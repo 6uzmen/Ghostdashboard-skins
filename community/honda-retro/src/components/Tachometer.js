@@ -73,7 +73,7 @@ export function Tachometer({ rpmM = 8, redline } = {}) {
   }).join("");
 
   return `
-    <div id="tachometer" class="tach" style="--tach-w:${WIDTH}px">
+    <div id="tachometer" class="tach is-idle" style="--tach-w:${WIDTH}px">
       <div class="tach__cells">${cells}</div>
       <div class="tach__bars">${bars}</div>
       <div class="tach__base">
