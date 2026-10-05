@@ -29,16 +29,18 @@
 
 #speedo[data-tier='3'] {
   --spd-main: #ff9c45;
-  --spd-glow: #ffeb9c;
-  --spd-glow-lead: #ffeb9c;
-  --spd-units: #ffeb9c;
+  /* Glow leans toward the next tier's red */
+  --spd-glow: #ff6333;
+  --spd-glow-lead: #ff6333;
+  --spd-units: #ff6333;
 }
 
 #speedo[data-tier='4'] {
   --spd-main: #ff4545;
-  --spd-glow: #ff8d50;
-  --spd-glow-lead: #ff8d50;
-  --spd-units: #ff8d50;
+  /* Glow leans toward the 200+ pink */
+  --spd-glow: #ff3d5e;
+  --spd-glow-lead: #ff3d5e;
+  --spd-units: #ff3d5e;
 }
 
 #speedo[data-tier='5'] {
