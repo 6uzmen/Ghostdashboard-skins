@@ -7,18 +7,15 @@ import "./WarningLights.css";
 const SDK_ICONS = "../../assets/icons"; // resolved at runtime from the skin's index.html
 
 // Color families. "amber" is the Figma tile; the rest follow the same recipe.
-// Order matters for the grid: row 1 critical, row 2 engine/body, row 3 lights.
+// 8 lamps fill the Figma 4×2 grid: row 1 engine/critical, row 2 body/lights.
 export const LAMPS = [
   { id: "oilSwitch", icon: "icons/lamp-oil.svg", tone: "amber", fit: "cover" },
   { id: "battAlt", icon: `${SDK_ICONS}/battery.svg`, tone: "red" },
   { id: "eBrake", icon: `${SDK_ICONS}/handbrake.svg`, tone: "red" },
-  { id: "airbag", icon: `${SDK_ICONS}/alert.svg`, tone: "red" },
   { id: "ECUErr", icon: `${SDK_ICONS}/injection.svg`, tone: "amber" },
-  { id: "fan", icon: `${SDK_ICONS}/fan.svg`, tone: "amber" },
   { id: "openDoor", icon: `${SDK_ICONS}/door.svg`, tone: "amber" },
   { id: "parkLights", icon: `${SDK_ICONS}/headlight.svg`, tone: "green" },
   { id: "fogLights", icon: `${SDK_ICONS}/milha.svg`, tone: "green" },
-  { id: "auxLights", icon: `${SDK_ICONS}/neblina.svg`, tone: "green" },
   { id: "highBeam", icon: `${SDK_ICONS}/hheadlight.svg`, tone: "blue" },
 ];
 
