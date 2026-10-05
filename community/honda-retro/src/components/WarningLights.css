@@ -1,0 +1,93 @@
+/* Warning-light panel, Figma 488-8.
+   Tile 26×26, radius 4, 8px across / 5px down. Off: #323026 with a dim icon.
+   On: colored tile, dark icon, and a blurred glow of the light color behind. */
+
+.lamps {
+  display: grid;
+  isolation: isolate; /* keeps the glows (z-index -1) above the page background */
+  grid-template-columns: repeat(var(--lamp-cols, 4), 26px);
+  gap: 5px 8px;
+}
+
+.lamp {
+  /* Tone tokens: tile, glow, icon ink when lit */
+  --lamp-base: #be8b1d;
+  --lamp-glow: rgba(255, 202, 87, 0.87);
+  --lamp-ink: #3a2a08;
+
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: #323026;
+  transition: background-color 0.25s ease;
+}
+
+.lamp--red {
+  --lamp-base: #b8232f;
+  --lamp-glow: rgba(255, 90, 98, 0.85);
+  --lamp-ink: #3a0a0e;
+}
+
+.lamp--green {
+  --lamp-base: #2e8b3e;
+  --lamp-glow: rgba(107, 224, 122, 0.8);
+  --lamp-ink: #0a2a10;
+}
+
+.lamp--blue {
+  --lamp-base: #1f5fbf;
+  --lamp-glow: rgba(90, 168, 255, 0.85);
+  --lamp-ink: #081a3a;
+}
+
+/* Glow: a blurred copy of the light color, behind the tile */
+.lamp::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: 4px;
+  background: var(--lamp-glow);
+  filter: blur(6.45px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lamp__icon {
+  position: absolute;
+  inset: 4px;
+  background-color: #5a5646;
+  -webkit-mask: var(--lamp-icon) center / contain no-repeat;
+  mask: var(--lamp-icon) center / contain no-repeat;
+  transition: background-color 0.25s ease;
+}
+
+/* The Figma oil icon is already cropped to its 20px box */
+.lamp--cover .lamp__icon {
+  inset: 3px;
+}
+
+.lamp[data-on='1'] {
+  background: var(--lamp-base);
+  animation: lamp-on 0.28s ease-out;
+}
+
+.lamp[data-on='1']::before {
+  opacity: 1;
+  transition-duration: 0.12s;
+}
+
+.lamp[data-on='1'] .lamp__icon {
+  background-color: var(--lamp-ink);
+}
+
+/* Switch-on flash, like a bulb warming up */
+@keyframes lamp-on {
+  0% {
+    filter: brightness(1.8);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
