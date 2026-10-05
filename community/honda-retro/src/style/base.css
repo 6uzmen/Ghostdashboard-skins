@@ -5,6 +5,13 @@
     url('../../assets/fonts/Rubik-Medium.ttf') format('truetype');
 }
 
+/* "Digital Numbers" is not part of the Ghost SDK assets: it ships with the skin.
+   Path is resolved at runtime relative to the skin's index.html. */
+@font-face {
+  font-family: 'Digital Numbers';
+  src: url('fonts/DigitalNumbers-Regular.ttf') format('truetype');
+}
+
 :root {
   --main-color: #cc0000;
   --second-color: #e8e8e8;

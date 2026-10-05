@@ -1,0 +1,112 @@
+/* Vertical segmented gauge, Figma 484-6.
+   JS sets on the root: --seg-rgb (fill color as "r,g,b") and .is-low.
+   On each segment: data-depth (0 = top lit "surface", 1–3 below it, off = unlit)
+   and --seg-fade (0 at the bottom of the fill → 1 at its top). */
+
+.seg-gauge {
+  --seg-rgb: 255, 214, 102;
+  --seg-muted: #949080;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 48px;
+}
+
+.seg-gauge__icon {
+  height: 24px;
+  display: flex;
+  align-items: flex-end;
+  color: var(--seg-muted);
+  transition: color 0.3s ease, filter 0.3s ease;
+}
+
+.seg-gauge__icon svg {
+  display: block;
+}
+
+.seg-gauge__bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.seg-gauge__seg {
+  display: block;
+  width: 23px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  transition:
+    background-color 0.25s ease,
+    opacity 0.25s ease;
+}
+
+/* Lit body: fill color, fading toward the bottom of the column */
+.seg-gauge__seg:not([data-depth='off']) {
+  background: rgb(var(--seg-rgb));
+  opacity: calc(0.14 + 0.86 * var(--seg-fade, 1));
+}
+
+/* The fill's surface: slightly wider/taller segments with a soft glow */
+.seg-gauge__seg[data-depth='0'] {
+  width: 28.94px;
+  height: 7.55px;
+  background: rgb(var(--seg-rgb));
+  box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.25);
+  opacity: 1;
+}
+
+.seg-gauge__seg[data-depth='1'] {
+  width: 27px;
+  height: 7px;
+}
+
+.seg-gauge__seg[data-depth='2'] {
+  width: 24.92px;
+  height: 6.5px;
+}
+
+.seg-gauge__value {
+  display: flex;
+  align-items: baseline;
+  font-family: 'Digital Numbers', monospace;
+  font-size: 16px;
+  color: var(--seg-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.seg-gauge__unit {
+  font-size: 10px;
+  margin-left: 1px;
+}
+
+/* --- Modifiers --- */
+
+/* Temp: the fill color itself carries the cold → hot transition (set in JS) */
+.seg-gauge--temp .seg-gauge__seg[data-depth='0'] {
+  box-shadow: 0 0 8px 2px rgba(var(--seg-rgb), 0.35);
+}
+
+/* Fuel: below the low threshold the pump icon lights up and pulses */
+.seg-gauge--fuel.is-low .seg-gauge__icon {
+  color: rgb(var(--seg-rgb));
+  filter: drop-shadow(0 0 4px rgba(var(--seg-rgb), 0.8));
+  animation: seg-gauge-low 1.6s ease-in-out infinite;
+}
+
+.seg-gauge--fuel.is-low .seg-gauge__value {
+  color: rgb(var(--seg-rgb));
+}
+
+@keyframes seg-gauge-low {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
