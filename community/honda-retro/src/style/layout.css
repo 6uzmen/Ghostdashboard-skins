@@ -1,0 +1,63 @@
+/* Dash layout, 1280×480 on black, from Figma 490-10.
+   Positions are the Figma ones (relative to the dash frame) where the part
+   was placed there; the rest are provisional until the design places them.
+   Free areas for parts still to come: top band (y 0–95) and the bottom
+   strip between the lamps and the gauges (y ~405–480). */
+
+body,
+html,
+#container {
+  background: #000;
+}
+
+.slot {
+  position: absolute;
+}
+
+/* Figma: tachometer cells start at x 116, y 101 (base line at y 391) */
+.slot--tach {
+  left: 116px;
+  top: 101px;
+}
+
+/* Figma: battery/temp/fuel columns at x 1093, y 98 */
+.slot--gauges {
+  left: 1093px;
+  top: 98px;
+  display: flex;
+  gap: 4px;
+}
+
+/* Figma: 4×2 warning-light grid at x 116, y 404 */
+.slot--lamps {
+  left: 116px;
+  top: 404px;
+}
+
+/* Provisional: turn signals in the top corners */
+.slot--turn-left {
+  left: 40px;
+  top: 28px;
+}
+
+.slot--turn-right {
+  right: 40px;
+  top: 28px;
+}
+
+/* Provisional: speed under the tachometer, centered on the dash */
+.slot--speed {
+  left: 50%;
+  top: 404px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.speed-unit {
+  font-family: 'Digital Numbers', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #949080;
+}

@@ -41,18 +41,19 @@ export const setupDevMocks = () => {
     odoNow: 0,
     lvlFuel: 65,
     clt: 88,
-    turnLeft: 0,
-    turnRight: 0,
-    battAlt: 0,
-    eBrake: 0,
-    highBeam: 0,
-    parkLights: 1,
-    fogLights: 0,
-    auxLights: 0,
-    openDoor: 0,
-    fan: 0,
-    oilSwitch: 0,
-    ECUErr: 0,
+    // Ghost signals are active-low: 0 = ON, 1 = OFF
+    turnLeft: 1,
+    turnRight: 1,
+    battAlt: 1,
+    eBrake: 1,
+    highBeam: 1,
+    parkLights: 0,
+    fogLights: 1,
+    auxLights: 1,
+    openDoor: 1,
+    fan: 1,
+    oilSwitch: 1,
+    ECUErr: 1,
   };
 
   window.canData = {
@@ -90,15 +91,30 @@ export const setupDevMocks = () => {
   window.zeroFixed = (v) => Math.round(v ?? 0);
   window.mapFormat = (v) => (v != null ? (v - 1).toFixed(2) : "0.00");
   window.fuelLevelFormat = (data, key) => Math.round((data && data[key]) ?? 0);
-  window.useCanChannel = () => false;
+  // CAN is "available" (battery comes from it) but RPM/speed/temp come from Basic
+  window.useCanChannel = (key) => !key;
   window.loadOdo = () => {};
   window.updateOdo = () => {};
   window.openConnection = (cb) => {
-    cb();
-    // Simulate turn signal toggling every 2s so styles are easy to inspect
-    setInterval(() => {
-      window.basicData.turnRight = window.basicData.turnRight ? 0 : 1;
-      window.basicData.turnLeft = window.basicData.turnLeft ? 0 : 1;
-    }, 2000);
+    requestAnimationFrame(cb);
+    // Simulated drive: rev through the gears, signal now and then, fuel draining
+    const start = performance.now();
+    const tick = () => {
+      const t = (performance.now() - start) / 1000;
+      const d = window.basicData;
+      const pull = (t % 12) / 9; // 0..1 during the pull, >1 coasting
+      const rpm = pull <= 1 ? 1200 + 7000 * ((pull * 3) % 1) : 900;
+      d.rpm = rpm;
+      d.kmh = d.kmhF = pull <= 1 ? 20 + 180 * pull : 60;
+      d.clt = Math.min(104, 70 + t * 1.5);
+      d.lvlFuel = Math.max(8, 70 - t * 1.2);
+      window.canData.batt = 13.6 + 0.3 * Math.sin(t);
+      const relay = Math.floor(t * 1.4) % 2; // ~0.7 Hz flasher
+      d.turnLeft = t % 20 < 6 ? relay : 1;
+      d.turnRight = t % 20 > 10 && t % 20 < 16 ? relay : 1;
+      d.highBeam = t % 15 > 9 ? 0 : 1;
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
   };
 };
