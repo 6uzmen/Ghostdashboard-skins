@@ -5,8 +5,8 @@
    the inner ones fade behind it. */
 
 .turn-signal {
-  --turn-on: 90ms;
-  --turn-off: 260ms;
+  --turn-on: 120ms;
+  --turn-off: 340ms;
 
   display: flex;
   align-items: center;

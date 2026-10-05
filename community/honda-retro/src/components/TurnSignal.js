@@ -7,10 +7,12 @@ const CHEVRONS = [
   "M44.2872 7.81329L41.6827 10.4432L40.4629 11.6746L41.6827 12.9061L49.9053 21.2088L41.6827 29.5115L40.4629 30.743L41.6827 31.9744L43.961 34.2762L45.2051 35.532L46.4483 34.2762L58.169 22.4402L59.3555 21.243L58.2032 20.0125L46.8077 7.84845L45.5655 6.52228L44.2872 7.81329Z",
 ];
 
-// Sequence timing (ms). One cycle ≈ a 1.2 Hz flasher.
-const STEP_MS = 110; // delay between chevrons lighting up
-const HOLD_MS = 260; // all lit, outer one leading
-const OFF_MS = 330; // dark gap before the next sweep
+// Sequence timing (ms). One self-timed cycle ≈ 0.9 Hz.
+// The third chevron lights at 2 × STEP_MS, so the sweep still completes
+// within a typical ~400 ms flasher pulse.
+const STEP_MS = 150; // delay between chevrons lighting up
+const HOLD_MS = 350; // all lit, outer one leading
+const OFF_MS = 400; // dark gap before the next sweep
 const CYCLE_MS = STEP_MS * CHEVRONS.length + HOLD_MS + OFF_MS;
 
 export function TurnSignal(direction) {
