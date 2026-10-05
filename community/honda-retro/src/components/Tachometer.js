@@ -89,7 +89,7 @@ export const WAVES = ["classic", "trail", "spring", "pulse"];
  * Call once after the HTML is mounted.
  * Returns an { update(rpm, now) } controller to use in the RAF loop.
  */
-export function createTachometerController({ rpmM = 8, redline, wave = "classic" } = {}) {
+export function createTachometerController({ rpmM = 8, redline, wave = "pulse" } = {}) {
   const root = document.getElementById("tachometer");
   const bars = Array.from(root.querySelectorAll(".tach__bar"));
   const cells = Array.from(root.querySelectorAll(".tach__cell"));

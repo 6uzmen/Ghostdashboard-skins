@@ -6,8 +6,7 @@
   position: relative;
   width: var(--tach-w);
   height: 295px;
-  /* Own stacking context: layers below are ordered explicitly and the
-     soft-light numbers only blend with the cells, not with the page */
+  /* Own stacking context so the layers below are ordered explicitly */
   isolation: isolate;
 }
 
@@ -18,55 +17,64 @@
   z-index: 1;
 }
 
-/* --- Cells (one per 1000 RPM) --- */
+/* --- Cells (one per 1000 RPM) ---
+   Designed for a pure black dash. Each cell is a faint glass panel with a
+   hairline top edge; two overlay layers fade in by opacity (smooth, cheap):
+   ::before = warm trail tint, ::after = glow of the current cell. */
 
 .tach__cell {
+  --cell-rgb: 255, 170, 70; /* warm amber */
   position: absolute;
-  isolation: isolate;
   top: 0;
   height: 176px;
   border-radius: 8px 8px 0 0;
-  background: linear-gradient(to bottom, rgba(237, 181, 60, 0.03), transparent);
-  transition: background 0.25s ease;
+  overflow: hidden;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012) 55%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-/* Redline zone: faint red even when idle */
+/* Redline zone: red tint even when idle */
 .tach__cell--red {
-  background: linear-gradient(to bottom, rgba(255, 0, 0, 0.11), transparent);
+  --cell-rgb: 255, 45, 70;
+  background: linear-gradient(to bottom, rgba(255, 45, 70, 0.1), rgba(255, 45, 70, 0.025) 55%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 70, 90, 0.16);
+}
+
+.tach__cell::before,
+.tach__cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease-out;
+}
+
+.tach__cell::before {
+  background: linear-gradient(to bottom, rgba(var(--cell-rgb), 0.22), rgba(var(--cell-rgb), 0.05) 60%, transparent);
+}
+
+.tach__cell::after {
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 0%, rgba(var(--cell-rgb), 0.55), rgba(var(--cell-rgb), 0.16) 55%, transparent 100%),
+    linear-gradient(to bottom, rgba(var(--cell-rgb), 0.16), transparent 75%);
+  box-shadow: inset 0 2px 0 rgba(var(--cell-rgb), 0.85);
+  transition-duration: 0.12s; /* lights up fast, fades out slower via ::before */
 }
 
 /* Trail behind the current cell (t1 = right behind it) */
-.tach__cell[data-state='t1'] {
-  background: linear-gradient(to bottom, rgba(245, 153, 47, 0.19), transparent);
-}
+.tach__cell[data-state='t1']::before { opacity: 0.85; }
+.tach__cell[data-state='t2']::before { opacity: 0.5; }
+.tach__cell[data-state='t3']::before { opacity: 0.28; }
+.tach__cell[data-state='t4']::before { opacity: 0.12; }
 
-.tach__cell[data-state='t2'] {
-  background: linear-gradient(to bottom, rgba(237, 181, 60, 0.11), transparent);
-}
-
-.tach__cell[data-state='t3'] {
-  background: linear-gradient(to bottom, rgba(237, 181, 60, 0.06), transparent);
-}
-
-.tach__cell--red[data-state^='t'] {
-  background: linear-gradient(to bottom, rgba(245, 47, 47, 0.21), transparent);
-}
-
-/* Current cell: warm radial glow from the top */
-.tach__cell[data-state='on'] {
-  background:
-    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255, 129, 50, 0.48), rgba(128, 64, 25, 0.24) 50%, transparent 100%),
-    linear-gradient(to bottom, rgba(245, 153, 47, 0.19), transparent);
-}
-
-.tach__cell--red[data-state='on'] {
-  background:
-    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255, 50, 70, 0.55), rgba(128, 20, 30, 0.26) 50%, transparent 100%),
-    linear-gradient(to bottom, rgba(245, 47, 47, 0.21), transparent);
+.tach__cell[data-state='on']::before,
+.tach__cell[data-state='on']::after {
+  opacity: 1;
 }
 
 .tach__num {
   position: absolute;
+  z-index: 1;
   top: 10px;
   left: 0;
   right: 0;
@@ -74,14 +82,27 @@
   font-family: 'Digital Numbers', monospace;
   font-size: 36px;
   line-height: 41px;
-  color: #fff;
-  mix-blend-mode: soft-light;
-  opacity: 0.4;
-  transition: opacity 0.2s ease;
+  /* Unlit: dim segments that still read on black */
+  color: rgba(255, 255, 255, 0.13);
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.tach__cell--red .tach__num {
+  color: rgba(255, 90, 105, 0.22);
+}
+
+.tach__cell[data-state^='t'] .tach__num {
+  color: rgba(var(--cell-rgb), 0.38);
 }
 
 .tach__cell[data-state='on'] .tach__num {
-  opacity: 1;
+  color: #fff3e0;
+  text-shadow: 0 0 6px rgba(var(--cell-rgb), 0.9), 0 0 16px rgba(var(--cell-rgb), 0.5);
+  transition-duration: 0.1s;
+}
+
+.tach__cell--red[data-state='on'] .tach__num {
+  color: #ffe3e6;
 }
 
 /* --- Bars --- */
