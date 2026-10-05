@@ -45,6 +45,34 @@ html,
   display: block;
   width: 100%;
   height: 100%;
+  /* Pressed-metal edge: a dark lip under the letters and a faint top light */
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 -0.5px 0 rgba(255, 255, 255, 0.25));
+}
+
+/* A narrow reflection that glides across the chrome now and then.
+   Masked by the logo itself, so it only lights the letters. */
+.logo-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-mask: url('icons/honda-logo.svg') center / 100% 100% no-repeat;
+  mask: url('icons/honda-logo.svg') center / 100% 100% no-repeat;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.9) 50%, transparent 60%) no-repeat;
+  background-size: 250% 100%;
+  background-position: 150% 0;
+  mix-blend-mode: screen;
+  animation: logo-sheen 9s ease-in-out 2s infinite;
+}
+
+@keyframes logo-sheen {
+  0%,
+  70% {
+    background-position: 150% 0;
+  }
+  85%,
+  100% {
+    background-position: -50% 0;
+  }
 }
 
 /* Figma: turn chevrons flank the logo at 52×24, 50px from it on each side.

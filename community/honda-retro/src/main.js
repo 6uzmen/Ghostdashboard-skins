@@ -23,7 +23,7 @@ const callback = () => {
   // --- Mount: each part sits in its own slot of the 1280×480 layout ---
   document.getElementById("container").innerHTML = `
     <div class="slot slot--turn-left">${TurnSignal("left")}</div>
-    <div class="slot slot--logo"><img src="icons/honda-logo.svg" alt="" onerror="this.remove()" /></div>
+    <div class="slot slot--logo"><img src="icons/honda-logo.svg" alt="" onerror="this.parentNode.remove()" /><span class="logo-sheen"></span></div>
     <div class="slot slot--turn-right">${TurnSignal("right")}</div>
     <div class="slot slot--tach">${Tachometer({ rpmM })}</div>
     <div class="slot slot--gauges">
