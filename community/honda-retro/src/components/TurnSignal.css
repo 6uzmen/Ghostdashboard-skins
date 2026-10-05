@@ -1,0 +1,17 @@
+.turn-signal {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+}
+
+.turn-left {
+  transform: rotate(180deg);
+}
+
+.turn-signal .arrow {
+  width: 24px;
+  height: 24px;
+  stroke: #ff4545;
+  opacity: 40%;
+  transition: opacity 0.15s ease;
+}

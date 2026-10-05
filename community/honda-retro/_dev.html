@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Honda Retro [DEV]</title>
+</head>
+<body>
+  <div id="container"></div>
+
+  <!--
+    Ghost globals (DASH_OPTIONS, basicData, canData, etc.) are not available here.
+    src/main.js detects this via import.meta.env.DEV and loads src/dev-mocks.js automatically.
+    Note: icon/font paths pointing to ../../assets/ will be broken in dev mode — test with Ghost devkit for full fidelity.
+  -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

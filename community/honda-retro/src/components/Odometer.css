@@ -1,0 +1,18 @@
+#odometer {
+  position: absolute;
+  bottom: 8px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 48px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+}
+
+#odometer span {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  margin: 0 4px;
+}
