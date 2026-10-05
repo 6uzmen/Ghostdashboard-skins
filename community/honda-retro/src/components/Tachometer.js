@@ -85,6 +85,7 @@ export function createTachometerController({ rpmM = 8, redline } = {}) {
   const red = redlineFor(rpmM, redline);
 
   const barLevel = new Array(BARS).fill(-1);
+  const levels = new Array(BARS).fill(0);
   const cellState = new Array(cells.length).fill("");
   let redOn = null;
 
@@ -113,17 +114,26 @@ export function createTachometerController({ rpmM = 8, redline } = {}) {
 
       // Wave shape: grows taller and wider with RPM, plus the acceleration surge
       const amp = Math.min(1, 0.25 + 0.95 * pos + 0.15 * surge);
-      const sigma = 2.6 + 2.2 * pos + 1.2 * surge; // in bars
+      // Narrow at low RPM so the wave reads as a peak, not a plateau
+      const sigma = 1.5 + 3.0 * pos + 1.2 * surge; // in bars
       const center = pos * (BARS - 1);
 
       for (let i = 0; i < BARS; i++) {
         const d = (i - center) / sigma;
         const h = BAR_MIN + (BAR_MAX - BAR_MIN) * amp * Math.exp(-0.5 * d * d);
         let level = 0;
-        while (level < STEPS.length - 1 && STEPS[level + 1] <= h + 4) level++;
-        if (level !== barLevel[i]) {
-          barLevel[i] = level;
-          bars[i].style.transform = `scaleY(${STEPS[level] / BAR_MAX})`;
+        while (level < STEPS.length - 1 && STEPS[level + 1] <= h) level++;
+        levels[i] = level;
+      }
+      // The bar at the crest always stands one step above its neighbours
+      const crest = Math.round(center);
+      const side = Math.max(levels[crest - 1] ?? 0, levels[crest + 1] ?? 0);
+      if (levels[crest] <= side && side < STEPS.length - 1) levels[crest] = side + 1;
+
+      for (let i = 0; i < BARS; i++) {
+        if (levels[i] !== barLevel[i]) {
+          barLevel[i] = levels[i];
+          bars[i].style.transform = `scaleY(${STEPS[levels[i]] / BAR_MAX})`;
         }
       }
 
