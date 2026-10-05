@@ -44,14 +44,14 @@ export function Tachometer({ rpmM = 8, redline } = {}) {
   const red = redlineFor(rpmM, redline);
   const redX = (red / (rpmM * 1000)) * WIDTH;
 
-  // Cell i covers i000–(i+1)000 RPM and is labelled with its thousand
-  // (the first one, 0–1000, stays blank like in the Figma frame)
+  // Cell k (1…rpmM) sits over the (k-1)000–k000 stretch of the bars and
+  // lights up once the RPM passes k000, like a counter filling in
   const cells = Array.from({ length: rpmM }, (_, i) => {
-    const inRed = i * 1000 > red;
+    const inRed = (i + 1) * 1000 > red;
     return `
       <div class="tach__cell${inRed ? " tach__cell--red" : ""}"
         style="left:${(i / rpmM) * WIDTH}px;width:${WIDTH / rpmM - 7}px">
-        <span class="tach__num">${i || ""}</span>
+        <span class="tach__num">${i + 1}</span>
       </div>`;
   }).join("");
 
@@ -141,11 +141,12 @@ export function createTachometerController({ rpmM = 8, redline } = {}) {
         }
       }
 
-      // Cells: the one under the RPM glows, the ones below fade out behind it
-      const current = Math.min(cells.length - 1, Math.floor(rpm / 1000));
+      // Cells: the last thousand passed glows, the ones before it fade out behind
+      const current = Math.floor(rpm / 1000); // 0 below 1000 RPM: nothing lit
       for (let i = 0; i < cells.length; i++) {
+        const k = i + 1;
         const state =
-          rpm < 200 ? "" : i === current ? "on" : i < current ? `t${Math.min(4, current - i)}` : "";
+          k === current ? "on" : k < current ? `t${Math.min(4, current - k)}` : "";
         if (state !== cellState[i]) {
           cellState[i] = state;
           cells[i].dataset.state = state;
