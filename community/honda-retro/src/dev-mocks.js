@@ -16,7 +16,7 @@ export const setupDevMocks = () => {
   };
 
   window.DASH_OPTIONS = {
-    rpmM: 8,
+    rpmM: 10,
     sLigt: "5250",
     redline: "5500",
     icon: 1,
@@ -103,7 +103,7 @@ export const setupDevMocks = () => {
       const t = (performance.now() - start) / 1000;
       const d = window.basicData;
       const pull = (t % 12) / 9; // 0..1 during the pull, >1 coasting
-      const rpm = pull <= 1 ? 1200 + 7000 * ((pull * 3) % 1) : 900;
+      const rpm = pull <= 1 ? 1200 + 8600 * ((pull * 3) % 1) : 900;
       d.rpm = rpm;
       d.kmh = d.kmhF = pull <= 1 ? 20 + 180 * pull : 60;
       d.clt = Math.min(104, 70 + t * 1.5);
