@@ -118,7 +118,9 @@ export function createTachometerController({ rpmM = 8, redline } = {}) {
       const amp = Math.min(1, 0.25 * lift * lift * (3 - 2 * lift) + 0.95 * pos + 0.15 * surge);
       // Narrow at low RPM so the wave reads as a peak, not a plateau
       const sigma = 1.5 + 3.0 * pos + 1.2 * surge; // in bars
-      const center = pos * (BARS - 1);
+      // Crest sits over the lit cell: cell k spans the k-th slot and lights
+      // from k000 RPM, so the crest is one slot (1000 RPM) behind the raw ratio
+      const center = (pos - 1 / rpmM) * BARS - 0.5;
 
       for (let i = 0; i < BARS; i++) {
         const d = (i - center) / sigma;
