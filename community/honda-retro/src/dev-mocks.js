@@ -102,10 +102,20 @@ export const setupDevMocks = () => {
     const tick = () => {
       const t = (performance.now() - start) / 1000;
       const d = window.basicData;
-      const pull = (t % 12) / 9; // 0..1 during the pull, >1 coasting
-      const rpm = pull <= 1 ? 1200 + 8600 * ((pull * 3) % 1) : 900;
-      d.rpm = rpm;
-      d.kmh = d.kmhF = pull <= 1 ? 20 + 180 * pull : 60;
+      // 14 s loop: stopped at idle (2 s), pull through 3 gears (9 s), brake to a stop (3 s)
+      const c = t % 14;
+      if (c < 2) {
+        d.rpm = 900;
+        d.kmh = d.kmhF = 0;
+      } else if (c < 11) {
+        const pull = (c - 2) / 9;
+        d.rpm = 1200 + 8600 * ((pull * 3) % 1);
+        d.kmh = d.kmhF = 200 * pull;
+      } else {
+        const brake = (c - 11) / 3;
+        d.rpm = 2500 - 1600 * brake;
+        d.kmh = d.kmhF = 200 * (1 - brake) ** 1.5;
+      }
       d.clt = Math.min(104, 70 + t * 1.5);
       d.lvlFuel = Math.max(8, 70 - t * 1.2);
       window.canData.batt = 13.6 + 0.3 * Math.sin(t);
