@@ -99,7 +99,7 @@ export function createTachometerController({ rpmM = 8, redline } = {}) {
     update(rawRpm, now) {
       const rpm = Math.max(0, Math.min(maxRpm, Number(rawRpm) || 0));
       const target = rpm / maxRpm;
-      const dt = lastNow === null ? 16 : Math.min(100, now - lastNow);
+      const dt = lastNow === null ? 16 : Math.max(0, Math.min(100, now - lastNow));
       lastNow = now;
 
       // Rise fast, fall a bit slower: revving feels snappy, lifting off feels weighty
