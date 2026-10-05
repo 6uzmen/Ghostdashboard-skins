@@ -13,24 +13,28 @@ const BAR_MIN = 12; // px, resting bar
 // which gives the stepped, LED-like look of the design.
 const STEPS = [12, 18.5, 34.2, 62.7, 85.5, 114, 138.7, 151];
 
-// Horizontal color gradient across the bars (Figma stops)
-const BAR_STOPS = [
+// Horizontal color gradient across the bars (Figma colors). The stops are
+// placed relative to the red zone start `z` (0–1 across the width), so the
+// wave is already reddish when it reaches the redline cell, whatever rpmM is.
+const barStops = (z) => [
   [0, [251, 253, 199]], // #fbfdc7
-  [0.38, [255, 214, 102]], // #ffd666
-  [0.7, [255, 156, 69]], // #ff9c45
-  [1, [244, 33, 68]], // #f42144
+  [z * 0.42, [255, 214, 102]], // #ffd666
+  [z * 0.72, [255, 156, 69]], // #ff9c45
+  [z * 0.92, [250, 80, 60]], // red-orange, just before the red zone
+  [z, [244, 33, 68]], // #f42144
+  [1, [244, 33, 68]],
 ];
 
 const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
-const colorAt = (r) => {
-  for (let i = 1; i < BAR_STOPS.length; i++) {
-    const [p1, c1] = BAR_STOPS[i];
+const colorAt = (stops, r) => {
+  for (let i = 1; i < stops.length; i++) {
+    const [p1, c1] = stops[i];
     if (r <= p1) {
-      const [p0, c0] = BAR_STOPS[i - 1];
-      return mix(c0, c1, (r - p0) / (p1 - p0));
+      const [p0, c0] = stops[i - 1];
+      return mix(c0, c1, (r - p0) / Math.max(1e-6, p1 - p0));
     }
   }
-  return BAR_STOPS[BAR_STOPS.length - 1][1];
+  return stops[stops.length - 1][1];
 };
 
 const redlineFor = (rpmM, redline) =>
@@ -46,6 +50,7 @@ export function Tachometer({ rpmM = 8, redline } = {}) {
   // which sits one slot left of its thousand on the axis
   const redCell = red / 1000;
   const redX = ((redCell - 1) / rpmM) * WIDTH;
+  const stops = barStops(redX / WIDTH);
 
   // Cell k (1…rpmM) sits over the (k-1)000–k000 stretch of the bars and
   // lights up once the RPM passes k000, like a counter filling in
@@ -53,7 +58,7 @@ export function Tachometer({ rpmM = 8, redline } = {}) {
   // cells in the red zone glow red
   const cells = Array.from({ length: rpmM }, (_, i) => {
     const inRed = i + 1 >= redCell;
-    const rgb = inRed ? "255,45,70" : colorAt((i + 0.5) / rpmM).join(",");
+    const rgb = inRed ? "255,45,70" : colorAt(stops, (i + 0.5) / rpmM).join(",");
     return `
       <div class="tach__cell${inRed ? " tach__cell--red" : ""}"
         style="left:${(i / rpmM) * WIDTH}px;width:${WIDTH / rpmM - 7}px;--cell-rgb:${rgb}">
@@ -63,7 +68,7 @@ export function Tachometer({ rpmM = 8, redline } = {}) {
 
   const bars = Array.from({ length: BARS }, (_, i) => {
     const pitch = WIDTH / BARS;
-    const rgb = colorAt(i / (BARS - 1)).join(",");
+    const rgb = colorAt(stops, (i + 0.5) / BARS).join(",");
     return `<span class="tach__bar" style="left:${i * pitch + (pitch - 9.46) / 2}px;--bar-rgb:${rgb}"></span>`;
   }).join("");
 
