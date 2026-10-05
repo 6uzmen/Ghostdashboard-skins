@@ -74,10 +74,22 @@ export function Tachometer({ rpmM = 8, redline } = {}) {
 }
 
 /**
+ * Wave behaviours (option `wave`):
+ * - "classic": a symmetric bump that chases the RPM with a little inertia.
+ * - "trail":   steep leading edge and a long tail behind it that stretches
+ *              while you accelerate, like a motion streak.
+ * - "spring":  the crest is on a spring, so a hard rev overshoots a touch
+ *              and settles, and the wave swells with its own speed.
+ * - "pulse":   while accelerating, ripples peel off the crest and run
+ *              backwards along the tail, like exhaust pulses.
+ */
+export const WAVES = ["classic", "trail", "spring", "pulse"];
+
+/**
  * Call once after the HTML is mounted.
  * Returns an { update(rpm, now) } controller to use in the RAF loop.
  */
-export function createTachometerController({ rpmM = 8, redline } = {}) {
+export function createTachometerController({ rpmM = 8, redline, wave = "classic" } = {}) {
   const root = document.getElementById("tachometer");
   const bars = Array.from(root.querySelectorAll(".tach__bar"));
   const cells = Array.from(root.querySelectorAll(".tach__cell"));
@@ -92,9 +104,26 @@ export function createTachometerController({ rpmM = 8, redline } = {}) {
   // Smoothed state: the wave chases the RPM with a little inertia,
   // and swells while you are accelerating.
   let pos = 0; // smoothed rpm ratio 0..1
+  let vel = 0; // pos per ms (spring)
   let surge = 0; // 0..1, extra amplitude from acceleration
+  let phase = 0; // ripple phase (pulse)
   let lastNow = null;
   let lastRpm = 0;
+
+  const profile = (d, sigma, amp) => {
+    // d: distance from the crest in bars (negative = behind it)
+    if (wave === "trail") {
+      const s = d < 0 ? sigma * (1.25 + 2.2 * surge) : sigma * 0.6;
+      return amp * Math.exp(-0.5 * (d / s) ** 2);
+    }
+    const base = amp * Math.exp(-0.5 * (d / sigma) ** 2);
+    if (wave === "pulse" && d < 0 && surge > 0.02) {
+      // Ripples travelling backwards, fading with distance
+      const ripple = Math.max(0, Math.cos((d + phase) * 0.85));
+      return base + Math.min(1, surge * 1.4) * 0.55 * ripple ** 3 * Math.exp(d / 14);
+    }
+    return base;
+  };
 
   return {
     update(rawRpm, now) {
@@ -103,28 +132,42 @@ export function createTachometerController({ rpmM = 8, redline } = {}) {
       const dt = lastNow === null ? 16 : Math.max(0, Math.min(100, now - lastNow));
       lastNow = now;
 
-      // Rise fast, fall a bit slower: revving feels snappy, lifting off feels weighty
-      const tau = target > pos ? 70 : 140;
-      pos += (target - pos) * (1 - Math.exp(-dt / tau));
+      if (wave === "spring") {
+        // Under-damped spring, integrated in small steps for stability
+        const w = 0.018; // rad/ms
+        const zeta = 0.35;
+        for (let t = dt; t > 0; t -= 8) {
+          const h = Math.min(8, t);
+          vel += (w * w * (target - pos) - 2 * zeta * w * vel) * h;
+          pos += vel * h;
+        }
+      } else {
+        // Rise fast, fall a bit slower: revving feels snappy, lifting off feels weighty
+        const tau = target > pos ? 70 : 140;
+        pos += (target - pos) * (1 - Math.exp(-dt / tau));
+      }
+      const p = Math.max(0, Math.min(1, pos));
 
       const accel = (rpm - lastRpm) / Math.max(1, dt); // rpm per ms
       lastRpm = rpm;
       const surgeTarget = Math.max(0, Math.min(1, accel / 8));
       surge += (surgeTarget - surge) * (1 - Math.exp(-dt / (surgeTarget > surge ? 60 : 260)));
+      phase += dt * 0.012 * (1 + 2 * p);
 
       // Wave shape: grows taller and wider with RPM, plus the acceleration surge
       // Flat at 0 RPM; the base lift fades in over the first ~1200 RPM (idle shows a small wave)
-      const lift = Math.min(1, pos / 0.12);
-      const amp = Math.min(1, 0.25 * lift * lift * (3 - 2 * lift) + 0.95 * pos + 0.15 * surge);
+      const lift = Math.min(1, p / 0.12);
+      const swell = wave === "spring" ? Math.min(0.3, Math.abs(vel) * 400) : 0.15 * surge;
+      const amp = Math.min(1, 0.25 * lift * lift * (3 - 2 * lift) + 0.95 * p + swell);
       // Narrow at low RPM so the wave reads as a peak, not a plateau
-      const sigma = 1.5 + 3.0 * pos + 1.2 * surge; // in bars
+      const stretch = wave === "spring" ? Math.min(2, Math.abs(vel) * 3500) : 0;
+      const sigma = 1.5 + 3.0 * p + 1.2 * surge + stretch; // in bars
       // Crest sits over the lit cell: cell k spans the k-th slot and lights
       // from k000 RPM, so the crest is one slot (1000 RPM) behind the raw ratio
-      const center = (pos - 1 / rpmM) * BARS - 0.5;
+      const center = (p - 1 / rpmM) * BARS - 0.5;
 
       for (let i = 0; i < BARS; i++) {
-        const d = (i - center) / sigma;
-        const h = BAR_MIN + (BAR_MAX - BAR_MIN) * amp * Math.exp(-0.5 * d * d);
+        const h = BAR_MIN + (BAR_MAX - BAR_MIN) * profile(i - center, sigma, amp);
         let level = 0;
         while (level < STEPS.length - 1 && STEPS[level + 1] <= h) level++;
         levels[i] = level;
