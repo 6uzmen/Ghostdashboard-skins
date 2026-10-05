@@ -11,8 +11,8 @@
                like an LED strip; the bloom deepens with the revs
    - sides:    light only from the left and right edges, leaving the logo
                and the top clean, like a racing HUD
-   - limiter:  the "frame" look plus a fast flash near the cut-off, like a
-               shift light */
+   - limiter:  the "frame" look plus a fast pulse near the cut-off, like a
+               shift light; the pulse fades in between limitAt and limitFull */
 
 .redline-glow {
   --redline-rgb: 255, 28, 48;
@@ -41,7 +41,14 @@
 }
 
 .redline-glow__flash {
-  opacity: 0;
+  /* Fades in across the last stretch, so the flash never starts with a jump */
+  opacity: var(--redline-flash, 0);
+}
+
+.redline-glow__flash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
 /* --- vignette --- */
@@ -70,22 +77,21 @@
   box-shadow: inset 0 0 120px 20px rgba(var(--redline-rgb), 0.32);
 }
 
-.redline-glow[data-variant='limiter'] .redline-glow__flash {
+.redline-glow[data-variant='limiter'] .redline-glow__flash::before {
+  border-radius: 6px;
   box-shadow:
     inset 0 0 0 2px rgba(255, 90, 100, 1),
     inset 0 0 60px 8px rgba(var(--redline-rgb), 0.45);
+  animation: redline-flash 0.2s ease-in-out infinite alternate;
 }
 
-.redline-glow[data-variant='limiter'].is-limit .redline-glow__flash {
-  animation: redline-flash 0.16s steps(1, end) infinite alternate;
-}
-
+/* A smooth pulse rather than an on/off blink */
 @keyframes redline-flash {
   from {
     opacity: 1;
   }
   to {
-    opacity: 0;
+    opacity: 0.15;
   }
 }
 

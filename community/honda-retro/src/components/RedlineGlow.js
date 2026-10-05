@@ -17,12 +17,18 @@ export function RedlineGlow({ variant = "vignette" } = {}) {
 /**
  * Call once after the HTML is mounted.
  * Returns an { update(rpm) } controller to use in the RAF loop.
- * `limitAt`: RPM where the "limiter" variant starts flashing.
+ * `limitAt`: RPM where the "limiter" pulse starts; it is at full strength
+ * by `limitFull`.
  */
-export function createRedlineGlowController({ from = 7000, to = 9000, limitAt = 8800 } = {}) {
+export function createRedlineGlowController({
+  from = 7000,
+  to = 9000,
+  limitAt = 8600,
+  limitFull = 9200,
+} = {}) {
   const el = document.getElementById("redline-glow");
   let last = -1;
-  let limit = null;
+  let lastFlash = -1;
 
   return {
     update(rawRpm) {
@@ -35,10 +41,11 @@ export function createRedlineGlowController({ from = 7000, to = 9000, limitAt = 
         el.style.setProperty("--redline-near", Math.min(1, k * 1.4).toFixed(3));
         el.style.setProperty("--redline-far", (k * k).toFixed(3));
       }
-      const atLimit = rpm >= limitAt;
-      if (atLimit !== limit) {
-        limit = atLimit;
-        el.classList.toggle("is-limit", atLimit);
+      const f = Math.max(0, Math.min(1, (rpm - limitAt) / (limitFull - limitAt)));
+      const flashStep = Math.round(f * 25);
+      if (flashStep !== lastFlash) {
+        lastFlash = flashStep;
+        el.style.setProperty("--redline-flash", (flashStep / 25).toFixed(2));
       }
     },
   };
