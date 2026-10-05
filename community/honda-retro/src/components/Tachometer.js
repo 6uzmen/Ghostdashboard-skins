@@ -1,0 +1,148 @@
+import "./Tachometer.css";
+
+// Bar-wave tachometer from Figma 485-7.
+// - A row of bars whose "wave" (a bump) follows the RPM and grows as you rev.
+// - One cell per 1000 RPM behind it, lighting up as the needle passes.
+// - A base line that turns red past the redline (8000 RPM by default).
+
+const WIDTH = 928; // px, drawing width of bars, cells and base line
+const BARS = 53;
+const BAR_MAX = 151; // px, tallest bar
+const BAR_MIN = 12; // px, resting bar
+// Height steps from the Figma frame: bars move in these increments,
+// which gives the stepped, LED-like look of the design.
+const STEPS = [12, 18.5, 34.2, 62.7, 85.5, 114, 138.7, 151];
+
+// Horizontal color gradient across the bars (Figma stops)
+const BAR_STOPS = [
+  [0, [251, 253, 199]], // #fbfdc7
+  [0.38, [255, 214, 102]], // #ffd666
+  [0.7, [255, 156, 69]], // #ff9c45
+  [1, [244, 33, 68]], // #f42144
+];
+
+const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
+const colorAt = (r) => {
+  for (let i = 1; i < BAR_STOPS.length; i++) {
+    const [p1, c1] = BAR_STOPS[i];
+    if (r <= p1) {
+      const [p0, c0] = BAR_STOPS[i - 1];
+      return mix(c0, c1, (r - p0) / (p1 - p0));
+    }
+  }
+  return BAR_STOPS[BAR_STOPS.length - 1][1];
+};
+
+const redlineFor = (rpmM, redline) =>
+  Math.min(redline ?? 8000, (rpmM - 1) * 1000);
+
+/**
+ * @param {number} rpmM  max RPM in thousands (DASH_OPTIONS.rpmM, 6–10)
+ * @param {number} [redline]  RPM where the base line turns red (default 8000)
+ */
+export function Tachometer({ rpmM = 8, redline } = {}) {
+  const red = redlineFor(rpmM, redline);
+  const redX = (red / (rpmM * 1000)) * WIDTH;
+
+  // Cell i covers i000–(i+1)000 RPM and is labelled with its thousand
+  // (the first one, 0–1000, stays blank like in the Figma frame)
+  const cells = Array.from({ length: rpmM }, (_, i) => {
+    const inRed = i * 1000 > red;
+    return `
+      <div class="tach__cell${inRed ? " tach__cell--red" : ""}"
+        style="left:${(i / rpmM) * WIDTH}px;width:${WIDTH / rpmM - 7}px">
+        <span class="tach__num">${i || ""}</span>
+      </div>`;
+  }).join("");
+
+  const bars = Array.from({ length: BARS }, (_, i) => {
+    const pitch = WIDTH / BARS;
+    const rgb = colorAt(i / (BARS - 1)).join(",");
+    return `<span class="tach__bar" style="left:${i * pitch + (pitch - 9.46) / 2}px;--bar-rgb:${rgb}"></span>`;
+  }).join("");
+
+  return `
+    <div id="tachometer" class="tach" style="--tach-w:${WIDTH}px">
+      <div class="tach__cells">${cells}</div>
+      <div class="tach__bars">${bars}</div>
+      <div class="tach__base">
+        <span class="tach__base-line" style="width:${redX - 8}px"></span>
+        <span class="tach__base-red" style="left:${redX}px"></span>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Call once after the HTML is mounted.
+ * Returns an { update(rpm, now) } controller to use in the RAF loop.
+ */
+export function createTachometerController({ rpmM = 8, redline } = {}) {
+  const root = document.getElementById("tachometer");
+  const bars = Array.from(root.querySelectorAll(".tach__bar"));
+  const cells = Array.from(root.querySelectorAll(".tach__cell"));
+  const maxRpm = rpmM * 1000;
+  const red = redlineFor(rpmM, redline);
+
+  const barLevel = new Array(BARS).fill(-1);
+  const cellState = new Array(cells.length).fill("");
+  let redOn = null;
+
+  // Smoothed state: the wave chases the RPM with a little inertia,
+  // and swells while you are accelerating.
+  let pos = 0; // smoothed rpm ratio 0..1
+  let surge = 0; // 0..1, extra amplitude from acceleration
+  let lastNow = null;
+  let lastRpm = 0;
+
+  return {
+    update(rawRpm, now) {
+      const rpm = Math.max(0, Math.min(maxRpm, Number(rawRpm) || 0));
+      const target = rpm / maxRpm;
+      const dt = lastNow === null ? 16 : Math.min(100, now - lastNow);
+      lastNow = now;
+
+      // Rise fast, fall a bit slower: revving feels snappy, lifting off feels weighty
+      const tau = target > pos ? 70 : 140;
+      pos += (target - pos) * (1 - Math.exp(-dt / tau));
+
+      const accel = (rpm - lastRpm) / Math.max(1, dt); // rpm per ms
+      lastRpm = rpm;
+      const surgeTarget = Math.max(0, Math.min(1, accel / 8));
+      surge += (surgeTarget - surge) * (1 - Math.exp(-dt / (surgeTarget > surge ? 60 : 260)));
+
+      // Wave shape: grows taller and wider with RPM, plus the acceleration surge
+      const amp = Math.min(1, 0.25 + 0.95 * pos + 0.15 * surge);
+      const sigma = 2.6 + 2.2 * pos + 1.2 * surge; // in bars
+      const center = pos * (BARS - 1);
+
+      for (let i = 0; i < BARS; i++) {
+        const d = (i - center) / sigma;
+        const h = BAR_MIN + (BAR_MAX - BAR_MIN) * amp * Math.exp(-0.5 * d * d);
+        let level = 0;
+        while (level < STEPS.length - 1 && STEPS[level + 1] <= h + 4) level++;
+        if (level !== barLevel[i]) {
+          barLevel[i] = level;
+          bars[i].style.transform = `scaleY(${STEPS[level] / BAR_MAX})`;
+        }
+      }
+
+      // Cells: the one under the RPM glows, the ones below fade out behind it
+      const current = Math.min(cells.length - 1, Math.floor(rpm / 1000));
+      for (let i = 0; i < cells.length; i++) {
+        const state =
+          rpm < 200 ? "" : i === current ? "on" : i < current ? `t${Math.min(4, current - i)}` : "";
+        if (state !== cellState[i]) {
+          cellState[i] = state;
+          cells[i].dataset.state = state;
+        }
+      }
+
+      const on = rpm >= red;
+      if (on !== redOn) {
+        redOn = on;
+        root.classList.toggle("is-redline", on);
+      }
+    },
+  };
+}

@@ -1,0 +1,127 @@
+/* Bar-wave tachometer, Figma 485-7.
+   Geometry: cells 176px tall at the top, bars (max 151px) sitting on y=283,
+   base line at y=290. */
+
+.tach {
+  position: relative;
+  width: var(--tach-w);
+  height: 295px;
+}
+
+/* --- Cells (one per 1000 RPM) --- */
+
+.tach__cell {
+  position: absolute;
+  top: 0;
+  height: 176px;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(to bottom, rgba(237, 181, 60, 0.03), transparent);
+  transition: background 0.25s ease;
+}
+
+/* Redline zone: faint red even when idle */
+.tach__cell--red {
+  background: linear-gradient(to bottom, rgba(255, 0, 0, 0.11), transparent);
+}
+
+/* Trail behind the current cell (t1 = right behind it) */
+.tach__cell[data-state='t1'] {
+  background: linear-gradient(to bottom, rgba(245, 153, 47, 0.19), transparent);
+}
+
+.tach__cell[data-state='t2'] {
+  background: linear-gradient(to bottom, rgba(237, 181, 60, 0.11), transparent);
+}
+
+.tach__cell[data-state='t3'] {
+  background: linear-gradient(to bottom, rgba(237, 181, 60, 0.06), transparent);
+}
+
+.tach__cell--red[data-state^='t'] {
+  background: linear-gradient(to bottom, rgba(245, 47, 47, 0.21), transparent);
+}
+
+/* Current cell: warm radial glow from the top */
+.tach__cell[data-state='on'] {
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255, 129, 50, 0.48), rgba(128, 64, 25, 0.24) 50%, transparent 100%),
+    linear-gradient(to bottom, rgba(245, 153, 47, 0.19), transparent);
+}
+
+.tach__cell--red[data-state='on'] {
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255, 50, 70, 0.55), rgba(128, 20, 30, 0.26) 50%, transparent 100%),
+    linear-gradient(to bottom, rgba(245, 47, 47, 0.21), transparent);
+}
+
+.tach__num {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'Digital Numbers', monospace;
+  font-size: 36px;
+  line-height: 41px;
+  color: #fff;
+  mix-blend-mode: soft-light;
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+
+.tach__cell[data-state='on'] .tach__num {
+  opacity: 1;
+}
+
+/* --- Bars --- */
+
+.tach__bars {
+  position: absolute;
+  left: 0;
+  top: 132px;
+  width: 100%;
+  height: 151px;
+}
+
+.tach__bar {
+  position: absolute;
+  bottom: 0;
+  width: 9.46px;
+  height: 151px;
+  background: rgb(var(--bar-rgb));
+  transform-origin: bottom center;
+  transform: scaleY(0.0795); /* 12 / 151, resting height */
+  transition: transform 90ms linear;
+  will-change: transform;
+}
+
+/* --- Base line --- */
+
+.tach__base {
+  position: absolute;
+  left: 0;
+  top: 290px;
+  width: 100%;
+  height: 3.79px;
+}
+
+.tach__base-line {
+  position: absolute;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(to right, rgba(217, 217, 217, 0), rgba(183, 183, 183, 0.54) 75%);
+}
+
+.tach__base-red {
+  position: absolute;
+  right: 0;
+  height: 100%;
+  background: #f42244;
+  opacity: 0.18;
+  transition: opacity 0.12s ease, box-shadow 0.12s ease;
+}
+
+.tach.is-redline .tach__base-red {
+  opacity: 1;
+  box-shadow: 0 0 7.7px 1px #f42144;
+}
