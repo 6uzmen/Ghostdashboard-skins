@@ -96,25 +96,27 @@ html,
   height: 35px;
 }
 
-/* Figma: speed at x 944 y 409, about 76×47 (digits scaled down from 48px) */
+/* Speed: digits as tall as the warning-light grid (57px, y 404–461).
+   The 48px Digital Numbers glyphs ink 50px (8px below the line-box top),
+   so scale 1.14 and lift the box by 8 × 1.14 ≈ 9px. Ends before the gauges. */
 .slot--speed {
-  left: 944px;
-  top: 405px;
-  transform: scale(0.66);
+  left: 878px;
+  top: 395px;
+  transform: scale(1.14);
   transform-origin: top left;
   display: flex;
   align-items: baseline;
   gap: 8px;
 }
 
-/* Sizes are before the 0.66 scale: ~12px on screen.
+/* Sizes are before the 1.14 scale: ~12.5px on screen.
    Nudged down so its letters sit on the same line as the digits' bottom
    segments (the 7-segment glyphs reach below the text baseline). */
 .speed-unit {
   position: relative;
-  top: var(--speed-unit-drop, 6px);
+  top: var(--speed-unit-drop, 8.5px);
   font-family: 'Digital Numbers', monospace;
-  font-size: 18px;
+  font-size: 11px;
   letter-spacing: 1px;
   color: #949080;
   opacity: 0.6;
