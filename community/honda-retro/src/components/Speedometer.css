@@ -1,0 +1,104 @@
+/* "Digital Numbers" is not part of the Ghost SDK assets: it ships with the skin.
+   Path is resolved at runtime relative to the skin's index.html. */
+@font-face {
+  font-family: 'Digital Numbers';
+  src: url('fonts/DigitalNumbers-Regular.ttf') format('truetype');
+}
+
+/* Colors per speed tier (Figma 472-2). Tier is set via data-tier on #speedo. */
+#speedo {
+  --spd-main: #f5f5f5;
+  --spd-glow: #f5f5f5;
+  --spd-glow-lead: #f5f5f5;
+  --spd-units: #f5f5f5;
+
+  display: flex;
+  font-family: 'Digital Numbers', monospace;
+  font-size: 48px;
+  line-height: normal;
+  user-select: none;
+  z-index: 2;
+}
+
+#speedo[data-tier='2'] {
+  --spd-main: #fbfdc7;
+  --spd-glow: #fbfdc7;
+  --spd-glow-lead: #fffee4;
+  --spd-units: #fbfdc7;
+}
+
+#speedo[data-tier='3'] {
+  --spd-main: #ff9c45;
+  --spd-glow: #ffeb9c;
+  --spd-glow-lead: #ffeb9c;
+  --spd-units: #ffeb9c;
+}
+
+#speedo[data-tier='4'] {
+  --spd-main: #ff4545;
+  --spd-glow: #ff8d50;
+  --spd-glow-lead: #ff8d50;
+  --spd-units: #ff8d50;
+}
+
+#speedo[data-tier='5'] {
+  --spd-main: #ff4040;
+  --spd-glow: #ff509c;
+  --spd-glow-lead: #ff509c;
+  --spd-units: #ff509c;
+}
+
+.spd-digit {
+  position: relative;
+  width: 39px;
+  text-align: center;
+}
+
+.spd-digit span {
+  display: block;
+  color: var(--spd-main);
+}
+
+.spd-digit .spd-main {
+  position: relative;
+}
+
+/* Blurred copy behind the lit digit */
+.spd-digit .spd-glow {
+  position: absolute;
+  inset: 0;
+  color: var(--spd-glow);
+  filter: blur(2.25px);
+}
+
+/* Hundreds digit glows wider */
+.spd-digit.hundreds .spd-glow {
+  color: var(--spd-glow-lead);
+  filter: blur(3.5px);
+}
+
+/* Leading zeros are drawn as unlit "ghost" segments */
+.spd-digit.ghost span {
+  opacity: 0.1;
+  color: #f5f5f5;
+}
+
+.spd-digit.units span {
+  opacity: 0.45;
+  color: var(--spd-units);
+}
+
+.spd-digit.ghost .spd-glow,
+.spd-digit.units .spd-glow,
+#speedo[data-tier='0'] .spd-glow {
+  display: none;
+}
+
+/* Low speed: no glow, slightly dimmed digits */
+#speedo[data-tier='0'] .spd-digit:not(.ghost) span {
+  opacity: 0.8;
+}
+
+#speedo[data-tier='0'] .spd-digit.units span {
+  opacity: 0.75;
+}

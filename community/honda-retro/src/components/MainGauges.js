@@ -1,4 +1,5 @@
 import './MainGauges.css'
+import { Speedometer } from './Speedometer.js'
 
 export function MainGauges({ rpmM = 8 } = {}) {
   return `
@@ -13,7 +14,7 @@ export function MainGauges({ rpmM = 8 } = {}) {
 
       <div id="speed-gauge" class="gauge-circle">
         <div id="kmhnumbers" class="gauge-numbers"></div>
-        <div id="speedo" class="gauge-center">0</div>
+        ${Speedometer()}
         <div class="gauge-arc-clip">
           <div class="gauge-arc-fill kmh-fill"></div>
         </div>

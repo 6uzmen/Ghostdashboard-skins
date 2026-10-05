@@ -12,6 +12,7 @@ import {
   initRPMNumbers,
   initSpeedNumbers,
 } from "./components/MainGauges.js";
+import { createSpeedometerController } from "./components/Speedometer.js";
 import { MicroGauges } from "./components/MicroGauges.js";
 import { Odometer } from "./components/Odometer.js";
 import {
@@ -46,6 +47,7 @@ const callback = () => {
   initRPMNumbers(rpmM);
   initSpeedNumbers();
 
+  const speedometer = createSpeedometerController();
   const turnLeft = createTurnSignalController("left");
   const turnRight = createTurnSignalController("right");
 
@@ -54,7 +56,6 @@ const callback = () => {
   const elems = [
     ...signals,
     "container",
-    "speedo",
     "kmTrip",
     "kmTotal",
     "fuelLevel",
@@ -70,7 +71,6 @@ const callback = () => {
 
   const {
     container,
-    speedo,
     kmTrip,
     kmTotal,
     gear,
@@ -107,7 +107,7 @@ const callback = () => {
   };
 
   const updateSpeed = (val, valf) => {
-    setText(speedo, zeroFixed(aSpd < 2 ? (valf ?? val) : val));
+    speedometer.update(aSpd < 2 ? (valf ?? val) : val);
     let bar = 0;
     if (val <= 60) bar = (val / 60) * 125;
     else if (val <= 140) bar = 125 + ((val - 60) / 80) * 83;
