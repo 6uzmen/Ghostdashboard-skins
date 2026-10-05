@@ -41,6 +41,7 @@ const TYPES = {
     min: 0,
     max: 110,
     unit: "c",
+    hotAt: 100,
     format: (v) => String(Math.round(v)),
   },
   fuel: {
@@ -91,7 +92,7 @@ export function SegmentGauge(type, id = `gauge-${type}`) {
 /**
  * Call once after the HTML is mounted.
  * Returns an { update(value) } controller to use in the RAF loop.
- * Options override the type's range: { min, max, lowAt }.
+ * Options override the type's range and alerts: { min, max, lowAt, hotAt }.
  */
 export function createSegmentGaugeController(type, id = `gauge-${type}`, options = {}) {
   const conf = { ...TYPES[type], ...options };
@@ -107,14 +108,16 @@ export function createSegmentGaugeController(type, id = `gauge-${type}`, options
       const ratio = Math.min(1, Math.max(0, (value - conf.min) / (conf.max - conf.min)));
       const lit = Math.round(ratio * SEGMENTS);
       const low = conf.lowAt != null && value < conf.lowAt;
+      const hot = conf.hotAt != null && value >= conf.hotAt;
       const text = conf.format(value);
 
-      const key = `${lit}|${low}|${text}|${Math.round(ratio * 100)}`;
+      const key = `${lit}|${low}|${hot}|${text}|${Math.round(ratio * 100)}`;
       if (key === lastKey) return;
       lastKey = key;
 
       root.style.setProperty("--seg-rgb", colorAt(conf.stops, ratio).join(","));
       root.classList.toggle("is-low", low);
+      root.classList.toggle("is-hot", hot);
 
       // Top lit segment is the bright "surface"; the ones below fade toward the base
       segs.forEach((el, i) => {
