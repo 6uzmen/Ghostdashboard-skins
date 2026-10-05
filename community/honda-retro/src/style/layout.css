@@ -1,6 +1,5 @@
 /* Dash layout, 1280×480 on black. Positions come from the full-dash Figma
-   frame (472-3), relative to the frame. Still to come: the boxed odometer
-   (x 578 y 416, 137×33). */
+   frame (472-3), relative to the frame. */
 
 body,
 html,
@@ -118,4 +117,11 @@ html,
   letter-spacing: 1px;
   color: #949080;
   opacity: 0.6;
+}
+
+/* Roller odometer, bottom center (approved preview) */
+.slot--odo {
+  left: 640px;
+  top: 417px;
+  transform: translateX(-50%);
 }

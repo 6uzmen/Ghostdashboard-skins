@@ -1,5 +1,5 @@
 /* global DASH_OPTIONS, basicData, canData, openConnection, useCanChannel,
-   checkCache, safeReturn, isBasicOnline */
+   checkCache, safeReturn, isBasicOnline, loadOdo, updateOdo */
 
 import "./style/base.css";
 import "./style/layout.css";
@@ -10,6 +10,7 @@ import { Tachometer, createTachometerController } from "./components/Tachometer.
 import { SegmentGauge, createSegmentGaugeController } from "./components/SegmentGauge.js";
 import { WarningLights, createWarningLightsController } from "./components/WarningLights.js";
 import { RedlineGlow, createRedlineGlowController } from "./components/RedlineGlow.js";
+import { Odometer, createOdometerController } from "./components/Odometer.js";
 
 // Tree-shaken in production: Vite replaces import.meta.env.DEV with false
 // and Rollup removes the dead branch + the unused import entirely.
@@ -33,6 +34,7 @@ const callback = () => {
       ${SegmentGauge("fuel")}
     </div>
     <div class="slot slot--lamps">${WarningLights()}</div>
+    <div class="slot slot--odo">${Odometer()}</div>
     ${RedlineGlow({ variant: "limiter" })}
     <div class="slot slot--speed">
       ${Speedometer()}
@@ -50,6 +52,11 @@ const callback = () => {
   const fuel = createSegmentGaugeController("fuel");
   const lamps = createWarningLightsController();
   const redlineGlow = createRedlineGlowController({ from: 7000, to: 9000, limitAt: 8500 });
+  const odometer = createOdometerController();
+
+  // Restore the saved km (total + trip) before the first frame
+  loadOdo(odometer.totalEl, odometer.tripEl, 0);
+  odometer.update();
 
   let [useCAN, useCANForRPM, useCANForVSS, useCANForCLT] = [false, false, false, false];
   const checkSource = () => {
@@ -73,6 +80,10 @@ const callback = () => {
     );
     temp.update(useCANForCLT ? canData.clt : safeReturn(basicData, "clt"));
     if (useCAN) battery.update(canData.batt);
+
+    // No guard: updateOdo also reflects a trip reset from the settings
+    updateOdo(odometer.totalEl, odometer.tripEl, useCANForVSS ? canData.odoNow : basicData.odoNow);
+    odometer.update();
 
     if (isBasicOnline) {
       fuel.update(safeReturn(basicData, "lvlFuel"));

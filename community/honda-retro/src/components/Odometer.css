@@ -1,18 +1,97 @@
-#odometer {
-  position: absolute;
-  bottom: 8px;
-  width: 100%;
+/* Roller odometer, golden-orange (approved preview, see notes/odometro-rodillos-spec.md).
+   Total: 6 rollers, trip: 4. Each roller is a 0–9,0 column moved with
+   transform only (cheap on the ARM board). */
+
+.odo {
   display: flex;
-  justify-content: space-between;
-  padding: 0 48px;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  color: rgba(255, 255, 255, 0.35);
-  text-transform: uppercase;
+  align-items: center;
+  gap: 11px;
 }
 
-#odometer span {
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
-  margin: 0 4px;
+.odo__group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.odo__label {
+  font: 600 8px/1 'Rubik', sans-serif;
+  letter-spacing: 0.14em;
+  color: #b47a2a;
+}
+
+.odo__drums {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid #3d2e1a;
+  border-radius: 4px;
+  background: #070605;
+}
+
+/* Glass reflection over the window */
+.odo__drums::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 2px;
+  height: 40%;
+  border-radius: 2px;
+  background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  z-index: 2;
+}
+
+.odo__drum {
+  position: relative;
+  width: 12px;
+  height: 21px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: linear-gradient(#000 0%, #181108 30%, #231a0d 50%, #181108 70%, #000 100%);
+}
+
+/* Curvature shading: the drum darkens toward its top and bottom */
+.odo__drum::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.65), transparent 32%, transparent 68%, rgba(0, 0, 0, 0.65));
+  pointer-events: none;
+}
+
+.odo__col {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.7s cubic-bezier(0.3, 0.1, 0.2, 1);
+}
+
+.odo__col.is-instant {
+  transition: none;
+}
+
+.odo__col span {
+  height: 21px;
+  display: grid;
+  place-items: center;
+  font: 14px/1 'Digital Numbers', monospace;
+  color: #ffb950;
+  text-shadow: 0 0 3px rgba(255, 170, 70, 0.75), 0 0 7px rgba(255, 150, 50, 0.28);
+}
+
+/* Values handed to the SDK's loadOdo/updateOdo; read by the component */
+.odo__value {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .odo__col {
+    transition: none;
+  }
 }

@@ -27,8 +27,8 @@ export const setupDevMocks = () => {
     sClt: 2,
     sCan: 1,
     tKm: "0",
-    kmTrip: 0,
-    kmTotal: 0,
+    kmTrip: 87,
+    kmTotal: 99995,
     theme: { colors, active: "honda-retro" },
   };
 
@@ -93,8 +93,22 @@ export const setupDevMocks = () => {
   window.fuelLevelFormat = (data, key) => Math.round((data && data[key]) ?? 0);
   // CAN is "available" (battery comes from it) but RPM/speed/temp come from Basic
   window.useCanChannel = (key) => !key;
-  window.loadOdo = () => {};
-  window.updateOdo = () => {};
+  // Same behaviour as the SDK: odoNow is a distance pulse, counted at most
+  // once a second, added to the saved total and trip
+  let odoBusy = false;
+  window.loadOdo = (totalEl, tripEl, add) => {
+    const o = window.DASH_OPTIONS;
+    o.kmTrip += add;
+    o.kmTotal += add;
+    window.setText(tripEl, Math.round(o.kmTrip));
+    window.setText(totalEl, Math.round(+o.tKm + o.kmTotal));
+  };
+  window.updateOdo = (totalEl, tripEl, odoNow) => {
+    if (!odoNow || odoBusy || isNaN(odoNow)) return;
+    odoBusy = true;
+    window.loadOdo(totalEl, tripEl, odoNow);
+    setTimeout(() => (odoBusy = false), 1000);
+  };
   window.openConnection = (cb) => {
     requestAnimationFrame(cb);
     // Simulated drive: rev through the gears, signal now and then, fuel draining
@@ -123,6 +137,8 @@ export const setupDevMocks = () => {
       d.turnLeft = t % 20 < 6 ? relay : 1;
       d.turnRight = t % 20 > 10 && t % 20 < 16 ? relay : 1;
       d.highBeam = t % 15 > 9 ? 0 : 1;
+      // Fast-forward distance so the rollers visibly turn: 1 km per second while moving
+      d.odoNow = d.kmh > 0 ? 1 : 0;
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
