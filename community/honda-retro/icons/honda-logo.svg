@@ -3,12 +3,10 @@
 <defs>
 <linearGradient id="paint0_linear_392_2010" x1="98.5" y1="0" x2="98.5" y2="24" gradientUnits="userSpaceOnUse">
 <stop stop-color="#FFFFFF"/>
-<stop offset="0.2" stop-color="#E6E9EC"/>
-<stop offset="0.44" stop-color="#9AA1A8"/>
-<stop offset="0.5" stop-color="#3A3F45"/>
-<stop offset="0.56" stop-color="#C7CDD3"/>
-<stop offset="0.78" stop-color="#F3F5F7"/>
-<stop offset="1" stop-color="#80878F"/>
+<stop offset="0.25" stop-color="#E9ECEF"/>
+<stop offset="0.52" stop-color="#B3B9C0"/>
+<stop offset="0.72" stop-color="#EEF1F4"/>
+<stop offset="1" stop-color="#8A9198"/>
 </linearGradient>
 </defs>
 </svg>
