@@ -12,15 +12,6 @@
   src: url('fonts/DigitalNumbers-Regular.ttf') format('truetype');
 }
 
-:root {
-  --main-color: #cc0000;
-  --second-color: #e8e8e8;
-  --rpm-bar: 294px;
-  --kmh-bar: 294px;
-  --fuel-bar: 1;
-  --clt-bar: 0;
-}
-
 *,
 *::before,
 *::after {

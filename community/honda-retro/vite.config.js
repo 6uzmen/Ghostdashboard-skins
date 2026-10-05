@@ -5,7 +5,7 @@ export default defineConfig({
     open: '/_dev.html',
   },
   build: {
-    // Output directly to the skin root so Ghost can load index.html + script.js + style.css
+    // Output directly to the skin root so Ghost can load index.html + script.js
     outDir: '.',
     emptyOutDir: false,
     rollupOptions: {
