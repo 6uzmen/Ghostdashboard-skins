@@ -111,6 +111,7 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
   const levels = new Array(BARS).fill(0);
   const cellState = new Array(cells.length).fill("");
   let redOn = null;
+  let wasIdle = null;
 
   // Smoothed state: the wave chases the RPM with a little inertia,
   // and swells while you are accelerating.
@@ -197,15 +198,24 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
         }
       }
 
-      // Cells: the last thousand passed glows, the ones before it fade out behind
+      // Cells: the last thousand passed glows, the ones before it fade out behind,
+      // and every cell dims with its distance from the lit one (both sides)
       const current = Math.floor(rpm / 1000); // 0 below 1000 RPM: nothing lit
+      const idle = current === 0;
+      if (idle !== wasIdle) {
+        wasIdle = idle;
+        root.classList.toggle("is-idle", idle);
+      }
       for (let i = 0; i < cells.length; i++) {
         const k = i + 1;
         const state =
           k === current ? "on" : k < current ? `t${Math.min(4, current - k)}` : "";
-        if (state !== cellState[i]) {
-          cellState[i] = state;
+        const dist = idle ? "" : String(Math.min(4, Math.abs(k - current)));
+        const key = state + "|" + dist;
+        if (key !== cellState[i]) {
+          cellState[i] = key;
           cells[i].dataset.state = state;
+          cells[i].dataset.dist = dist;
         }
       }
 
