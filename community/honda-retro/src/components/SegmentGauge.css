@@ -19,7 +19,9 @@
   display: flex;
   align-items: flex-end;
   color: var(--seg-muted);
-  transition: color 0.3s ease, filter 0.3s ease;
+  /* Dimmed at rest so the alert states stand out */
+  opacity: 0.45;
+  transition: color 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
 }
 
 .seg-gauge__icon svg {
@@ -96,6 +98,7 @@
 .seg-gauge--fuel.is-low .seg-gauge__icon {
   color: rgb(var(--seg-rgb));
   filter: drop-shadow(0 0 4px rgba(var(--seg-rgb), 0.8));
+  opacity: 1;
   animation: seg-gauge-low 1.6s ease-in-out infinite;
 }
 
@@ -107,6 +110,7 @@
 .seg-gauge--temp.is-hot .seg-gauge__icon {
   color: #ff4545;
   filter: drop-shadow(0 0 4px rgba(255, 69, 69, 0.85));
+  opacity: 1;
   animation: seg-gauge-low 1.2s ease-in-out infinite;
 }
 
@@ -120,6 +124,6 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.45;
+    opacity: 0.65;
   }
 }
