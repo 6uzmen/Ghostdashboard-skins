@@ -29,8 +29,9 @@ export const LAMPS = [
  */
 export function WarningLights({ columns = 4, iconUrl = (lamp) => lamp.icon } = {}) {
   const tiles = LAMPS.map(
-    (lamp) => `
-      <div id="lamp-${lamp.id}" class="lamp lamp--${lamp.tone}${lamp.fit === "cover" ? " lamp--cover" : ""}" data-on="0">
+    (lamp, i) => `
+      <div id="lamp-${lamp.id}" class="lamp lamp--${lamp.tone}${lamp.fit === "cover" ? " lamp--cover" : ""}" data-on="0"
+        style="--lamp-phase:-${((i * 1.37) % 3.4).toFixed(2)}s">
         <span class="lamp__icon" style="--lamp-icon:url('${iconUrl(lamp)}')"></span>
       </div>`,
   ).join("");

@@ -1,6 +1,10 @@
 /* Warning-light panel, Figma 488-8.
-   Tile 26×26, radius 4, 8px across / 5px down. Off: #323026 with a dim icon.
-   On: colored tile, dark icon, and a blurred glow of the light color behind. */
+   Tile 26×26, radius 4, 8px across / 5px down.
+   Off: a dark lens (#323026) with a dim icon.
+   On: a backlit lens. The light is hottest in the middle and falls off
+   toward the edges, the glass has a soft top highlight and a faint ribbed
+   texture, the icon is the opaque print in front of the bulb, and the
+   bloom around the tile breathes very slightly, like a real bulb. */
 
 .lamps {
   display: grid;
@@ -10,38 +14,50 @@
 }
 
 .lamp {
-  /* Tone tokens: tile, glow, icon ink when lit */
-  --lamp-base: #be8b1d;
-  --lamp-glow: rgba(255, 202, 87, 0.87);
-  --lamp-ink: #3a2a08;
+  /* Tone tokens: hot center, lens body, dark rim, bloom, icon print */
+  --lamp-hot: #ffe7a0;
+  --lamp-base: #e0a12a;
+  --lamp-edge: #8f6512;
+  --lamp-glow: rgba(255, 202, 87, 0.85);
+  --lamp-ink: rgba(58, 42, 8, 0.88);
 
   position: relative;
   width: 26px;
   height: 26px;
   border-radius: 4px;
-  background: #323026;
-  transition: background-color 0.25s ease;
+  background-color: #323026;
+  /* Unlit glass: a hint of the lens edge so it reads as an object, not a hole */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.35);
+  transition: background-color 0.35s ease, box-shadow 0.35s ease;
 }
 
 .lamp--red {
-  --lamp-base: #b8232f;
-  --lamp-glow: rgba(255, 90, 98, 0.85);
-  --lamp-ink: #3a0a0e;
+  --lamp-hot: #ff9a92;
+  --lamp-base: #d8333f;
+  --lamp-edge: #7d1520;
+  --lamp-glow: rgba(255, 80, 90, 0.85);
+  --lamp-ink: rgba(58, 10, 14, 0.88);
 }
 
 .lamp--green {
-  --lamp-base: #2e8b3e;
+  --lamp-hot: #b4f7b9;
+  --lamp-base: #3fae52;
+  --lamp-edge: #1c5a27;
   --lamp-glow: rgba(107, 224, 122, 0.8);
-  --lamp-ink: #0a2a10;
+  --lamp-ink: rgba(10, 42, 16, 0.88);
 }
 
 .lamp--blue {
-  --lamp-base: #1f5fbf;
+  --lamp-hot: #b6dbff;
+  --lamp-base: #2f7ae0;
+  --lamp-edge: #133a75;
   --lamp-glow: rgba(90, 168, 255, 0.85);
-  --lamp-ink: #081a3a;
+  --lamp-ink: rgba(8, 26, 58, 0.88);
 }
 
-/* Glow: a blurred copy of the light color, behind the tile */
+/* Bloom: a blurred copy of the light behind the tile */
 .lamp::before {
   content: '';
   position: absolute;
@@ -51,16 +67,34 @@
   background: var(--lamp-glow);
   filter: blur(6.45px);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
+}
+
+/* Lit lens: hot spot → body → darker rim, with glass highlight and ribbing */
+.lamp::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 45%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse 75% 75% at 50% 48%, var(--lamp-hot) 0%, var(--lamp-base) 55%, var(--lamp-edge) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.35s ease;
 }
 
 .lamp__icon {
   position: absolute;
+  z-index: 1;
   inset: 4px;
   background-color: #5a5646;
   -webkit-mask: var(--lamp-icon) center / contain no-repeat;
   mask: var(--lamp-icon) center / contain no-repeat;
-  transition: background-color 0.25s ease;
+  transition: background-color 0.3s ease;
 }
 
 /* The Figma oil icon is already cropped to its 20px box */
@@ -68,26 +102,45 @@
   inset: 3px;
 }
 
-.lamp[data-on='1'] {
-  background: var(--lamp-base);
-  animation: lamp-on 0.28s ease-out;
+.lamp[data-on='1']::after {
+  opacity: 1;
+  transition-duration: 0.12s;
+  animation: lamp-warm 0.32s ease-out;
 }
 
 .lamp[data-on='1']::before {
   opacity: 1;
-  transition-duration: 0.12s;
+  transition-duration: 0.15s;
+  animation: lamp-breathe 3.4s ease-in-out 0.4s infinite;
+  animation-delay: var(--lamp-phase, 0s);
 }
 
 .lamp[data-on='1'] .lamp__icon {
   background-color: var(--lamp-ink);
+  /* the light softens the print's edges a touch */
+  filter: blur(0.25px);
 }
 
-/* Switch-on flash, like a bulb warming up */
-@keyframes lamp-on {
+/* Switch-on: the bulb warms up from a dim, deeper glow and settles */
+@keyframes lamp-warm {
   0% {
-    filter: brightness(1.8);
+    filter: brightness(0.35) saturate(1.5);
+  }
+  45% {
+    filter: brightness(1.2) saturate(1.05);
   }
   100% {
-    filter: brightness(1);
+    filter: brightness(1) saturate(1);
+  }
+}
+
+/* Lit: the bloom drifts a few percent, never in sync between lamps */
+@keyframes lamp-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.82;
   }
 }
