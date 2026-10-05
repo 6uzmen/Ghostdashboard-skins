@@ -113,7 +113,9 @@ export function createTachometerController({ rpmM = 8, redline } = {}) {
       surge += (surgeTarget - surge) * (1 - Math.exp(-dt / (surgeTarget > surge ? 60 : 260)));
 
       // Wave shape: grows taller and wider with RPM, plus the acceleration surge
-      const amp = Math.min(1, 0.25 + 0.95 * pos + 0.15 * surge);
+      // Flat at 0 RPM; the base lift fades in over the first ~1200 RPM (idle shows a small wave)
+      const lift = Math.min(1, pos / 0.12);
+      const amp = Math.min(1, 0.25 * lift * lift * (3 - 2 * lift) + 0.95 * pos + 0.15 * surge);
       // Narrow at low RPM so the wave reads as a peak, not a plateau
       const sigma = 1.5 + 3.0 * pos + 1.2 * surge; // in bars
       const center = pos * (BARS - 1);
@@ -128,7 +130,9 @@ export function createTachometerController({ rpmM = 8, redline } = {}) {
       // The bar at the crest always stands one step above its neighbours
       const crest = Math.round(center);
       const side = Math.max(levels[crest - 1] ?? 0, levels[crest + 1] ?? 0);
-      if (levels[crest] <= side && side < STEPS.length - 1) levels[crest] = side + 1;
+      if (levels[crest] > 0 && levels[crest] <= side && side < STEPS.length - 1) {
+        levels[crest] = side + 1;
+      }
 
       for (let i = 0; i < BARS; i++) {
         if (levels[i] !== barLevel[i]) {
