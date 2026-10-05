@@ -23,7 +23,7 @@ export function RedlineGlow({ variant = "vignette" } = {}) {
 export function createRedlineGlowController({
   from = 7000,
   to = 9000,
-  limitAt = 8600,
+  limitAt = 8500,
   limitFull = 9200,
 } = {}) {
   const el = document.getElementById("redline-glow");

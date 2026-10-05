@@ -33,7 +33,7 @@ const callback = () => {
       ${SegmentGauge("fuel")}
     </div>
     <div class="slot slot--lamps">${WarningLights()}</div>
-    ${RedlineGlow()}
+    ${RedlineGlow({ variant: "limiter" })}
     <div class="slot slot--speed">
       ${Speedometer()}
       <span class="speed-unit">km/h</span>
@@ -49,7 +49,7 @@ const callback = () => {
   const battery = createSegmentGaugeController("battery");
   const fuel = createSegmentGaugeController("fuel");
   const lamps = createWarningLightsController();
-  const redlineGlow = createRedlineGlowController({ from: 7000, to: 9000 });
+  const redlineGlow = createRedlineGlowController({ from: 7000, to: 9000, limitAt: 8500 });
 
   let [useCAN, useCANForRPM, useCANForVSS, useCANForCLT] = [false, false, false, false];
   const checkSource = () => {
