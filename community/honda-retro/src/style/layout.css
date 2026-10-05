@@ -74,4 +74,15 @@ html,
   top: 405px;
   transform: scale(0.66);
   transform-origin: top left;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+/* Sizes are before the 0.66 scale: ~12px on screen */
+.speed-unit {
+  font-family: 'Digital Numbers', monospace;
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: #949080;
 }

@@ -32,7 +32,10 @@ const callback = () => {
       ${SegmentGauge("fuel")}
     </div>
     <div class="slot slot--lamps">${WarningLights()}</div>
-    <div class="slot slot--speed">${Speedometer()}</div>
+    <div class="slot slot--speed">
+      ${Speedometer()}
+      <span class="speed-unit">km/h</span>
+    </div>
   `;
 
   // --- Controllers (DOM refs cached once, never queried inside the loop) ---
