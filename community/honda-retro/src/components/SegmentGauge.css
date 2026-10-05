@@ -39,7 +39,8 @@
   display: block;
   width: 23px;
   height: 6px;
-  background: rgba(255, 255, 255, 0.15);
+  /* Unlit: kept faint so the lit column stands out on black */
+  background: rgba(255, 255, 255, 0.07);
   transition:
     background-color 0.25s ease,
     opacity 0.25s ease;
