@@ -85,12 +85,14 @@
 
 /* --- Modifiers --- */
 
-/* Temp: the fill color itself carries the cold → hot transition (set in JS) */
-.seg-gauge--temp .seg-gauge__seg[data-depth='0'] {
+/* Fill colors come from JS: temp cold → hot, battery/fuel empty → full.
+   The surface glow takes the fill color. */
+.seg-gauge__seg[data-depth='0'] {
   box-shadow: 0 0 8px 2px rgba(var(--seg-rgb), 0.35);
 }
 
-/* Fuel: below the low threshold the pump icon lights up and pulses */
+/* Fuel: below the low threshold the pump icon lights up and pulses
+   (the fill is already orange there, from the shared ramp) */
 .seg-gauge--fuel.is-low .seg-gauge__icon {
   color: rgb(var(--seg-rgb));
   filter: drop-shadow(0 0 4px rgba(var(--seg-rgb), 0.8));

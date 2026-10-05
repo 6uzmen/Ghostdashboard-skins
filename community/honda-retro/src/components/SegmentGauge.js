@@ -5,6 +5,7 @@ import fuelIcon from "../../icons/gauge-fuel.svg?raw";
 
 // Vertical segmented gauge from Figma 484-6.
 // One component, three modifiers: battery · temp · fuel.
+// Temp runs cold → hot; battery and fuel share an empty → full ramp.
 
 const SEGMENTS = 23;
 
@@ -17,18 +18,26 @@ const TEMP_STOPS = [
   [1, [255, 69, 69]], // #ff4545
 ];
 
-const BASE_RGB = [255, 214, 102]; // #ffd666
-const LOW_FUEL_RGB = [255, 156, 69]; // #ff9c45
+// Shared by battery and fuel: empty → full, ending in an almost-white yellow
+const LEVEL_STOPS = [
+  [0, [255, 122, 61]], // #ff7a3d
+  [0.2, [255, 156, 69]], // #ff9c45
+  [0.45, [255, 214, 102]], // #ffd666, as in the Figma frame
+  [0.9, [255, 243, 196]], // #fff3c4
+  [1, [255, 251, 232]], // #fffbe8
+];
 
 const TYPES = {
   battery: {
     icon: batteryIcon,
+    stops: LEVEL_STOPS,
     min: 10,
     max: 16,
     format: (v) => v.toFixed(1),
   },
   temp: {
     icon: tempIcon,
+    stops: TEMP_STOPS,
     min: 0,
     max: 110,
     unit: "c",
@@ -36,6 +45,7 @@ const TYPES = {
   },
   fuel: {
     icon: fuelIcon,
+    stops: LEVEL_STOPS,
     min: 0,
     max: 100,
     lowAt: 20,
@@ -45,15 +55,15 @@ const TYPES = {
 
 const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
 
-const tempColor = (ratio) => {
-  for (let i = 1; i < TEMP_STOPS.length; i++) {
-    const [p1, c1] = TEMP_STOPS[i];
+const colorAt = (stops, ratio) => {
+  for (let i = 1; i < stops.length; i++) {
+    const [p1, c1] = stops[i];
     if (ratio <= p1) {
-      const [p0, c0] = TEMP_STOPS[i - 1];
+      const [p0, c0] = stops[i - 1];
       return mix(c0, c1, (ratio - p0) / (p1 - p0));
     }
   }
-  return TEMP_STOPS[TEMP_STOPS.length - 1][1];
+  return stops[stops.length - 1][1];
 };
 
 /**
@@ -99,14 +109,11 @@ export function createSegmentGaugeController(type, id = `gauge-${type}`, options
       const low = conf.lowAt != null && value < conf.lowAt;
       const text = conf.format(value);
 
-      const key = `${lit}|${low}|${text}|${type === "temp" ? Math.round(ratio * 100) : ""}`;
+      const key = `${lit}|${low}|${text}|${Math.round(ratio * 100)}`;
       if (key === lastKey) return;
       lastKey = key;
 
-      let rgb = BASE_RGB;
-      if (type === "temp") rgb = tempColor(ratio);
-      else if (low) rgb = LOW_FUEL_RGB;
-      root.style.setProperty("--seg-rgb", rgb.join(","));
+      root.style.setProperty("--seg-rgb", colorAt(conf.stops, ratio).join(","));
       root.classList.toggle("is-low", low);
 
       // Top lit segment is the bright "surface"; the ones below fade toward the base
