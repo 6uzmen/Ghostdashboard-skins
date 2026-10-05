@@ -49,7 +49,7 @@ html,
   filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.85)) drop-shadow(0 -0.5px 0 rgba(255, 255, 255, 0.25));
 }
 
-/* A narrow reflection that glides across the chrome now and then.
+/* A narrow reflection that glides slowly across the chrome now and then.
    Masked by the logo itself, so it only lights the letters. */
 .logo-sheen {
   position: absolute;
@@ -61,15 +61,15 @@ html,
   background-size: 250% 100%;
   background-position: 150% 0;
   mix-blend-mode: screen;
-  animation: logo-sheen 9s ease-in-out 2s infinite;
+  /* 20 s cycle: rests ~17 s, then a slow 3 s pass */
+  animation: logo-sheen 20s ease-in-out 3s infinite;
 }
 
 @keyframes logo-sheen {
   0%,
-  70% {
+  85% {
     background-position: 150% 0;
   }
-  85%,
   100% {
     background-position: -50% 0;
   }
