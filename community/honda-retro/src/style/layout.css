@@ -79,10 +79,15 @@ html,
   gap: 8px;
 }
 
-/* Sizes are before the 0.66 scale: ~12px on screen */
+/* Sizes are before the 0.66 scale: ~12px on screen.
+   Nudged down so its letters sit on the same line as the digits' bottom
+   segments (the 7-segment glyphs reach below the text baseline). */
 .speed-unit {
+  position: relative;
+  top: var(--speed-unit-drop, 6px);
   font-family: 'Digital Numbers', monospace;
   font-size: 18px;
   letter-spacing: 1px;
   color: #949080;
+  opacity: 0.6;
 }
