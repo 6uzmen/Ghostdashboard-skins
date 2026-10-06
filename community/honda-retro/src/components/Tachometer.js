@@ -119,8 +119,20 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
   let vel = 0; // pos per ms (spring)
   let surge = 0; // 0..1, extra amplitude from acceleration
   let phase = 0; // ripple phase (pulse)
+  let idleT = 0; // ms, clock for the idle throb
+  let idleMix = 0; // 0..1, how much the idle animation shows
   let lastNow = null;
   let lastRpm = 0;
+
+  // Idle: low, uneven throb of the crest plus vibration rings running out
+  // from it along the bars, like a running engine at rest
+  const idleRings = (d) => {
+    if (idleMix < 0.01) return 0;
+    const f = lastRpm / 420; // Hz, ~2 Hz at 900 RPM
+    const x = Math.abs(d);
+    const ring = Math.max(0, Math.cos(x * 0.9 - idleT * 0.0062 * f * Math.PI));
+    return idleMix * 0.2 * ring ** 4 * Math.exp(-x / 9);
+  };
 
   const profile = (d, sigma, amp) => {
     // d: distance from the crest in bars (negative = behind it)
@@ -166,11 +178,26 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
       surge += (surgeTarget - surge) * (1 - Math.exp(-dt / (surgeTarget > surge ? 60 : 260)));
       phase += dt * 0.012 * (1 + 2 * p);
 
+      // Idle shows between ~600 and ~1500 RPM while not revving; 0 RPM stays flat
+      const smooth = (a, b, x) => {
+        const k = Math.max(0, Math.min(1, (x - a) / (b - a)));
+        return k * k * (3 - 2 * k);
+      };
+      const idleTarget = smooth(400, 700, rpm) * (1 - smooth(1400, 1900, rpm)) * (1 - Math.min(1, surge * 4));
+      idleMix += (idleTarget - idleMix) * (1 - Math.exp(-dt / 250));
+      idleT += dt;
+
       // Wave shape: grows taller and wider with RPM, plus the acceleration surge
       // Flat at 0 RPM; the base lift fades in over the first ~1200 RPM (idle shows a small wave)
       const lift = Math.min(1, p / 0.12);
       const swell = wave === "spring" ? Math.min(0.3, Math.abs(vel) * 400) : 0.15 * surge;
-      const amp = Math.min(1, 0.25 * lift * lift * (3 - 2 * lift) + 0.95 * p + swell);
+      let amp = Math.min(1, 0.25 * lift * lift * (3 - 2 * lift) + 0.95 * p + swell);
+      if (idleMix > 0.01) {
+        // Two beating sines give an uneven, lumpy idle rather than a clean pulse
+        const f = rpm / 420;
+        const w = (idleT / 1000) * 2 * Math.PI * f;
+        amp *= 1 + idleMix * 0.3 * (0.6 * Math.sin(w) + 0.4 * Math.sin(2.03 * w + 1.3));
+      }
       // Narrow at low RPM so the wave reads as a peak, not a plateau
       const stretch = wave === "spring" ? Math.min(2, Math.abs(vel) * 3500) : 0;
       const sigma = 1.5 + 3.0 * p + 1.2 * surge + stretch; // in bars
@@ -179,7 +206,7 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
       const center = (p - 1 / rpmM) * BARS - 0.5;
 
       for (let i = 0; i < BARS; i++) {
-        const h = BAR_MIN + (BAR_MAX - BAR_MIN) * profile(i - center, sigma, amp);
+        const h = BAR_MIN + (BAR_MAX - BAR_MIN) * (profile(i - center, sigma, amp) + idleRings(i - center));
         let level = 0;
         while (level < STEPS.length - 1 && STEPS[level + 1] <= h) level++;
         levels[i] = level;
