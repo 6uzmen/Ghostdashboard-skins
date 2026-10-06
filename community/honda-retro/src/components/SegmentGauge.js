@@ -116,6 +116,7 @@ export function createSegmentGaugeController(type, id = `gauge-${type}`, options
       lastKey = key;
 
       root.style.setProperty("--seg-rgb", colorAt(conf.stops, ratio).join(","));
+      root.style.setProperty("--seg-level", ratio.toFixed(2));
       root.classList.toggle("is-low", low);
       root.classList.toggle("is-hot", hot);
 
