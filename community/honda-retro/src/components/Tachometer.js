@@ -221,7 +221,9 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
       for (let i = 0; i < BARS; i++) {
         if (levels[i] !== barLevel[i]) {
           barLevel[i] = levels[i];
-          bars[i].style.transform = `scaleY(${STEPS[levels[i]] / BAR_MAX})`;
+          const k = STEPS[levels[i]] / BAR_MAX;
+          bars[i].style.transform = `scaleY(${k})`;
+          bars[i].style.setProperty("--k", k);
         }
       }
 

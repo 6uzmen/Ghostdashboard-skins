@@ -138,6 +138,11 @@
   background: rgb(var(--bar-rgb));
   transform-origin: bottom center;
   transform: scaleY(0.0795); /* 12 / 151, resting height */
+  /* Rounded top corners. The bar is drawn at full height and scaled down,
+     so the vertical radius is divided by the scale (--k, set with it in JS)
+     to come out as 2px on screen. */
+  --k: 0.0795;
+  border-radius: 2px 2px 0 0 / calc(2px / var(--k)) calc(2px / var(--k)) 0 0;
   transition: transform 90ms linear;
 }
 
