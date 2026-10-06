@@ -67,6 +67,7 @@ export const setupDevMocks = () => {
     batt: 13.8,
     lambda: 1.01,
     oilPress: 4.2,
+    tps: 2,
     odoNow: 0,
   };
 
@@ -118,17 +119,23 @@ export const setupDevMocks = () => {
       const d = window.basicData;
       // 14 s loop: stopped at idle (2 s), pull through 3 gears (9 s), brake to a stop (3 s)
       const c = t % 14;
+      const cd = window.canData;
       if (c < 2) {
         d.rpm = 900;
         d.kmh = d.kmhF = 0;
+        cd.tps = 2;
       } else if (c < 11) {
         const pull = (c - 2) / 9;
-        d.rpm = 1200 + 8600 * ((pull * 3) % 1);
+        const inGear = (pull * 3) % 1;
+        d.rpm = 1200 + 8600 * inGear;
         d.kmh = d.kmhF = 200 * pull;
+        // Floored in each gear, lifted for a moment at every shift
+        cd.tps = inGear > 0.03 ? 100 : 10;
       } else {
         const brake = (c - 11) / 3;
         d.rpm = 2500 - 1600 * brake;
         d.kmh = d.kmhF = 200 * (1 - brake) ** 1.5;
+        cd.tps = 0;
       }
       d.clt = Math.min(104, 70 + t * 1.5);
       d.lvlFuel = Math.max(8, 70 - t * 1.2);

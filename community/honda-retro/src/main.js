@@ -20,7 +20,9 @@ if (import.meta.env.DEV) {
 }
 
 const callback = () => {
-  const { rpmM, aSpd, clt: cltMax } = DASH_OPTIONS;
+  const { aSpd, clt: cltMax } = DASH_OPTIONS;
+  // RPM scale (in thousands) from the dash settings; 10k when it's not set
+  const rpmM = +DASH_OPTIONS.rpmM || 10;
 
   // --- Mount: each part sits in its own slot of the 1280×480 layout ---
   document.getElementById("container").innerHTML = `
@@ -73,7 +75,8 @@ const callback = () => {
     if (!checkCache("useCAN", useCanChannel())) checkSource();
 
     const rpm = useCANForRPM ? canData.rpm : safeReturn(basicData, "rpm");
-    tach.update(rpm, now);
+    // TPS only exists on the CAN side; without it the wave follows RPM alone
+    tach.update(rpm, now, useCAN ? canData.tps : null);
     redlineGlow.update(rpm);
     speedometer.update(
       useCANForVSS ? canData.vss : aSpd < 2 ? (basicData.kmhF ?? basicData.kmh) : basicData.kmh,

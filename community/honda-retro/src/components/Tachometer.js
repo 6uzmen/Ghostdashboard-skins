@@ -11,7 +11,10 @@ const BAR_MAX = 151; // px, tallest bar
 const BAR_MIN = 12; // px, resting bar
 // Height steps from the Figma frame: bars move in these increments,
 // which gives the stepped, LED-like look of the design.
-const STEPS = [12, 18.5, 34.2, 62.7, 85.5, 114, 138.7, 151];
+const STEPS = [12, 18.5, 34.2, 62.7, 85.5, 114, 138.7, 151, 165, 178];
+// The last two steps are an "overboost": only reachable with the throttle
+// floored (TPS), so the central bars can poke above the normal top.
+const TOP = 7; // index of 151, the normal maximum
 
 // Horizontal color gradient across the bars (Figma colors). The stops are
 // placed relative to the red zone start `z` (0–1 across the width), so the
@@ -98,7 +101,9 @@ export const WAVES = ["classic", "trail", "spring", "pulse"];
 
 /**
  * Call once after the HTML is mounted.
- * Returns an { update(rpm, now) } controller to use in the RAF loop.
+ * Returns an { update(rpm, now, tps) } controller to use in the RAF loop.
+ * `tps` (throttle position 0–100, CAN only) is optional: with it the wave
+ * reacts to how hard the driver presses; without it, to RPM changes only.
  */
 export function createTachometerController({ rpmM = 8, redline, wave = "pulse" } = {}) {
   const root = document.getElementById("tachometer");
@@ -119,6 +124,7 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
   let vel = 0; // pos per ms (spring)
   let surge = 0; // 0..1, extra amplitude from acceleration
   let phase = 0; // ripple phase (pulse)
+  let throttle = 0; // smoothed TPS 0..1 (stays 0 without TPS)
   let idleT = 0; // ms, clock for the idle throb
   let idleMix = 0; // 0..1, how much the idle animation shows
   let lastNow = null;
@@ -150,11 +156,15 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
   };
 
   return {
-    update(rawRpm, now) {
+    update(rawRpm, now, rawTps) {
       const rpm = Math.max(0, Math.min(maxRpm, Number(rawRpm) || 0));
+      // Throttle 0..1, or null when TPS isn't available (no ECU over CAN)
+      const hasTps = rawTps != null && rawTps !== "" && !isNaN(rawTps);
+      const tpsTarget = hasTps ? Math.max(0, Math.min(1, Number(rawTps) / 100)) : 0;
       const target = rpm / maxRpm;
       const dt = lastNow === null ? 16 : Math.max(0, Math.min(100, now - lastNow));
       lastNow = now;
+      throttle += (tpsTarget - throttle) * (1 - Math.exp(-dt / 80));
 
       if (wave === "spring") {
         // Under-damped spring, integrated in small steps for stability
@@ -166,17 +176,23 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
           pos += vel * h;
         }
       } else {
-        // Rise fast, fall a bit slower: revving feels snappy, lifting off feels weighty
-        const tau = target > pos ? 70 : 140;
+        // Rise fast, fall a bit slower: revving feels snappy, lifting off feels weighty.
+        // More throttle makes it snappier still (70 ms → ~45 ms at full throttle)
+        const tau = target > pos ? 70 * (1.15 - 0.5 * throttle) : 140;
         pos += (target - pos) * (1 - Math.exp(-dt / tau));
       }
       const p = Math.max(0, Math.min(1, pos));
 
       const accel = (rpm - lastRpm) / Math.max(1, dt); // rpm per ms
       lastRpm = rpm;
-      const surgeTarget = Math.max(0, Math.min(1, accel / 8));
+      // With TPS, how hard you press scales the swell, and a floored pedal keeps
+      // the wave swollen even when the RPM levels off; without it, RPM gain only
+      const fromAccel = Math.max(0, Math.min(1, accel / 8));
+      const surgeTarget = hasTps
+        ? Math.min(1, fromAccel * (0.4 + 1.2 * throttle) + Math.max(0, throttle - 0.5) * 0.9)
+        : fromAccel;
       surge += (surgeTarget - surge) * (1 - Math.exp(-dt / (surgeTarget > surge ? 60 : 260)));
-      phase += dt * 0.012 * (1 + 2 * p);
+      phase += dt * 0.012 * (1 + 2 * p) * (1 + throttle);
 
       // Idle shows between ~600 and ~1500 RPM while not revving; 0 RPM stays flat
       const smooth = (a, b, x) => {
@@ -191,16 +207,30 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
       // Flat at 0 RPM; the base lift fades in over the first ~1200 RPM (idle shows a small wave)
       const lift = Math.min(1, p / 0.12);
       const swell = wave === "spring" ? Math.min(0.3, Math.abs(vel) * 400) : 0.15 * surge;
-      let amp = Math.min(1, 0.25 * lift * lift * (3 - 2 * lift) + 0.95 * p + swell);
+      // The wave's height grows with the RPM on an ease-in curve, like an engine
+      // pulling harder as it climbs: modest at low RPM, rising faster toward the
+      // top, which it only reaches at max RPM (10 000 with rpmM = 10). The
+      // acceleration swell can add a little, never far above that curve.
+      const rise = p ** 1.8;
+      const ceiling = 0.2 + 0.8 * rise;
+      let amp = Math.min(1, ceiling + 0.08, 0.25 * lift * lift * (3 - 2 * lift) + 0.75 * rise + swell);
+      if (hasTps) {
+        // Off the throttle the wave sits a little lower, on it slightly taller
+        amp = Math.min(1, ceiling + 0.08, amp * (0.9 + 0.15 * throttle));
+      }
       if (idleMix > 0.01) {
         // Two beating sines give an uneven, lumpy idle rather than a clean pulse
         const f = rpm / 420;
         const w = (idleT / 1000) * 2 * Math.PI * f;
         amp *= 1 + idleMix * 0.3 * (0.6 * Math.sin(w) + 0.4 * Math.sin(2.03 * w + 1.3));
       }
+      // Overboost: with the pedal past ~70% (TPS only) the wave turns into a
+      // spike: the shoulders narrow and the 3 central bars stand out; near max
+      // RPM they go above the normal 151px top, the crest up to 178px
+      const boost = hasTps ? Math.max(0, Math.min(1, (throttle - 0.7) / 0.3)) * Math.min(1, amp) : 0;
       // Narrow at low RPM so the wave reads as a peak, not a plateau
       const stretch = wave === "spring" ? Math.min(2, Math.abs(vel) * 3500) : 0;
-      const sigma = 1.5 + 3.0 * p + 1.2 * surge + stretch; // in bars
+      const sigma = (1.5 + 3.0 * p + 1.2 * surge + stretch) * (1 - 0.4 * boost); // in bars
       // Crest sits over the lit cell: cell k spans the k-th slot and lights
       // from k000 RPM, so the crest is one slot (1000 RPM) behind the raw ratio
       const center = (p - 1 / rpmM) * BARS - 0.5;
@@ -208,14 +238,39 @@ export function createTachometerController({ rpmM = 8, redline, wave = "pulse" }
       for (let i = 0; i < BARS; i++) {
         const h = BAR_MIN + (BAR_MAX - BAR_MIN) * (profile(i - center, sigma, amp) + idleRings(i - center));
         let level = 0;
-        while (level < STEPS.length - 1 && STEPS[level + 1] <= h) level++;
+        while (level < TOP && STEPS[level + 1] <= h) level++;
         levels[i] = level;
       }
-      // The bar at the crest always stands one step above its neighbours
       const crest = Math.round(center);
-      const side = Math.max(levels[crest - 1] ?? 0, levels[crest + 1] ?? 0);
-      if (levels[crest] > 0 && levels[crest] <= side && side < STEPS.length - 1) {
-        levels[crest] = side + 1;
+      // How tall the spike may get also depends on the RPM: two steps above the
+      // line for the current RPM, above the normal top only near max RPM, and
+      // the full 178px only at the very top of the range
+      const levelOf = (h) => {
+        let l = 0;
+        while (l < STEPS.length - 1 && STEPS[l + 1] <= h) l++;
+        return l;
+      };
+      const spikeCap = Math.min(
+        levelOf(BAR_MIN + 166 * rise) + 2,
+        p >= 0.97 ? TOP + 2 : p >= 0.88 ? TOP + 1 : TOP,
+      );
+      if (boost > 0.15 && levels[crest] >= 3) {
+        // Spike: the crest jumps 1–2 steps, its two neighbours sit one step
+        // below it, and everything else stays at least two steps under it
+        // never lower than the crest would be without the pedal
+        const peak = Math.max(levels[crest], boost > 0.6 ? spikeCap : Math.min(spikeCap, levels[crest] + 1));
+        for (let i = 0; i < BARS; i++) {
+          const d = Math.abs(i - crest);
+          if (d === 0) levels[i] = peak;
+          else if (d === 1) levels[i] = Math.max(0, peak - 1);
+          else levels[i] = Math.min(levels[i], Math.max(0, peak - 2));
+        }
+      } else {
+        // The bar at the crest always stands one step above its neighbours
+        const side = Math.max(levels[crest - 1] ?? 0, levels[crest + 1] ?? 0);
+        if (levels[crest] > 0 && levels[crest] <= side && side < TOP) {
+          levels[crest] = side + 1;
+        }
       }
 
       for (let i = 0; i < BARS; i++) {
