@@ -18,8 +18,8 @@ bar-wave tachometer and backlit warning lights on a pure black canvas.
   toward the center up to 9000, and pulse like a shift light near the cut-off.
 - **Gauges**: coolant temperature (cold blue to hot red, icon lights red from
   100 °C), battery and fuel (empty-to-full color ramp, pump icon pulses below
-  20%). On the left, lambda (rich blue to lean orange, with a RICA / OK /
-  POBRE label) and oil pressure in bar. Both hold their worst reading for a
+  20%). On the left, lambda (rich blue to lean orange, with a RICH / OK /
+  LEAN label) and oil pressure in bar. Both hold their worst reading for a
   couple of seconds and turn red on a lean mixture under load or low oil
   pressure. Gauges in their normal range are slightly dimmed, so the one that
   needs attention stands out.

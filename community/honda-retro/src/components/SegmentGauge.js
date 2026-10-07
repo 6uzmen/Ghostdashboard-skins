@@ -42,9 +42,9 @@ const LAMBDA_STOPS = [
 
 const ALERT_RGB = [255, 69, 69]; // #ff4545
 
-// RICA / OK / POBRE pill under the lambda value
+// RICH / OK / LEAN pill under the lambda value
 const lambdaState = (v, alert) => (v < 0.92 ? "rich" : v <= 1.06 ? "ok" : alert ? "bad" : "lean");
-const LAMBDA_TAGS = { rich: "RICA", ok: "OK", lean: "POBRE", bad: "POBRE" };
+const LAMBDA_TAGS = { rich: "RICH", ok: "OK", lean: "LEAN", bad: "LEAN" };
 
 // Each type can define:
 //  alert(v, ctx)  red fill + pulsing icon (ctx carries { rpm, tps })
