@@ -18,21 +18,28 @@ bar-wave tachometer and backlit warning lights on a pure black canvas.
   toward the center up to 9000, and pulse like a shift light near the cut-off.
 - **Gauges**: coolant temperature (cold blue to hot red, icon lights red from
   100 °C), battery and fuel (empty-to-full color ramp, pump icon pulses below
-  20%).
+  20%). On the left, lambda (rich blue to lean orange, with a RICA / OK /
+  POBRE label) and oil pressure in bar. Both hold their worst reading for a
+  couple of seconds and turn red on a lean mixture under load or low oil
+  pressure. Gauges in their normal range are slightly dimmed, so the one that
+  needs attention stands out.
 - **Warning lights**: oil pressure, battery, handbrake, check engine, open
   door, park lights, fog lights and high beam, each drawn as a backlit lens
   that warms up when it switches on.
 - **Turn signals**: sequential, Mustang-style chevrons either side of the
   chrome HONDA logo.
 - **Odometer**: golden roller drums for the total (6 digits) and the trip
-  (4 digits).
+  (4 digits), kept dim as reference info.
 
 ## Data and settings
 
-- RPM, speed and coolant follow the CAN/Basic source settings; battery comes
-  from CAN; fuel, warning lights and turn signals come from the Basic module.
+- RPM, speed and coolant follow the CAN/Basic source settings; battery,
+  lambda, oil pressure and throttle (TPS) come from CAN; fuel, warning lights
+  and turn signals come from the Basic module.
 - The tachometer uses the **RPM max** setting (6000–10000) for its number of
-  cells. The design is drawn for 10000.
+  cells, and 10000 when it's not set. The design is drawn for 10000.
+- The oil pressure gauge's full scale is the **pOil** setting (10 bar if not
+  set).
 - The odometer uses the SDK's `loadOdo` / `updateOdo`, so totals, trip reset
   and the base km setting work as in the other skins.
 

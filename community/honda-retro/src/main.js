@@ -29,6 +29,10 @@ const callback = () => {
     <div class="slot slot--turn-left">${TurnSignal("left")}</div>
     <div class="slot slot--logo"><img src="icons/honda-logo.svg" alt="" onerror="this.parentNode.remove()" /><span class="logo-sheen"></span></div>
     <div class="slot slot--turn-right">${TurnSignal("right")}</div>
+    <div class="slot slot--left-gauges">
+      ${SegmentGauge("lambda")}
+      ${SegmentGauge("oil")}
+    </div>
     <div class="slot slot--tach">${Tachometer({ rpmM })}</div>
     <div class="slot slot--gauges">
       ${SegmentGauge("temp")}
@@ -52,6 +56,8 @@ const callback = () => {
   const temp = createSegmentGaugeController("temp", "gauge-temp", { max: +cltMax || 110 });
   const battery = createSegmentGaugeController("battery");
   const fuel = createSegmentGaugeController("fuel");
+  const lambda = createSegmentGaugeController("lambda");
+  const oil = createSegmentGaugeController("oil", "gauge-oil", { max: +DASH_OPTIONS.pOil || 10 });
   const lamps = createWarningLightsController();
   const redlineGlow = createRedlineGlowController({ from: 7000, to: 9000, limitAt: 8500 });
   const odometer = createOdometerController();
@@ -82,7 +88,12 @@ const callback = () => {
       useCANForVSS ? canData.vss : aSpd < 2 ? (basicData.kmhF ?? basicData.kmh) : basicData.kmh,
     );
     temp.update(useCANForCLT ? canData.clt : safeReturn(basicData, "clt"));
-    if (useCAN) battery.update(canData.batt);
+    if (useCAN) {
+      battery.update(canData.batt);
+      // Lambda and oil pressure only come over CAN; without it they stay empty
+      lambda.update(canData.lambda, { tps: canData.tps });
+      oil.update(canData.oilPress, { rpm });
+    }
 
     // No guard: updateOdo also reflects a trip reset from the settings
     updateOdo(odometer.totalEl, odometer.tripEl, useCANForVSS ? canData.odoNow : basicData.odoNow);

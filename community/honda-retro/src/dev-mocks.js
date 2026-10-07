@@ -21,6 +21,7 @@ export const setupDevMocks = () => {
     redline: "5500",
     icon: 1,
     clt: "110",
+    pOil: 10,
     aSpd: 1,
     sRpm: 2,
     sVss: 1,
@@ -114,6 +115,8 @@ export const setupDevMocks = () => {
     requestAnimationFrame(cb);
     // Simulated drive: rev through the gears, signal now and then, fuel draining
     const start = performance.now();
+    let lam = 1;
+    let oil = 1.2;
     const tick = () => {
       const t = (performance.now() - start) / 1000;
       const d = window.basicData;
@@ -140,6 +143,18 @@ export const setupDevMocks = () => {
       d.clt = Math.min(104, 70 + t * 1.5);
       d.lvlFuel = Math.max(8, 70 - t * 1.2);
       window.canData.batt = 13.6 + 0.3 * Math.sin(t);
+      // Lambda follows the throttle: closed loop around 1.00 at idle, rich at
+      // full throttle, lean on the fuel cut. Oil pressure follows RPM.
+      const rpm = d.rpm;
+      const lamTarget =
+        cd.tps >= 60 ? 0.86 + 0.01 * Math.sin(t * 7)
+        : cd.tps <= 1 && rpm > 1400 ? 1.6
+        : cd.tps < 15 && rpm > 1400 ? 1.04
+        : 1 + 0.035 * Math.sin(t * 5.5);
+      lam += (lamTarget - lam) * 0.08;
+      oil += (Math.min(6.4, 1.1 + rpm * 0.00062) - oil) * 0.05;
+      cd.lambda = +lam.toFixed(3);
+      cd.oilPress = +oil.toFixed(2);
       const relay = Math.floor(t * 1.4) % 2; // ~0.7 Hz flasher
       d.turnLeft = t % 20 < 6 ? relay : 1;
       d.turnRight = t % 20 > 10 && t % 20 < 16 ? relay : 1;

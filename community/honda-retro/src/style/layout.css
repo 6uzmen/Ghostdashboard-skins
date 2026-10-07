@@ -11,23 +11,33 @@ html,
   position: absolute;
 }
 
-/* Figma: tachometer cells start at x 116, y 101 (base line at y 391) */
+/* Figma: tachometer cells at y 101 (base line at y 391). Moved from x 116
+   to 156 to make room for the lambda/oil column on the left. */
 .slot--tach {
-  left: 116px;
+  left: 156px;
   top: 101px;
 }
 
-/* Figma: battery/temp/fuel columns at x 1093, y 98 */
+/* Figma: battery/temp/fuel columns at y 98; x 1108 keeps them 24px from the
+   tachometer and 20px from the right edge */
 .slot--gauges {
-  left: 1093px;
+  left: 1108px;
   top: 98px;
   display: flex;
   gap: 4px;
 }
 
-/* Figma: 4×2 warning-light grid at x 116, y 404 */
+/* Lambda + oil pressure, mirroring the right gauges */
+.slot--left-gauges {
+  left: 32px;
+  top: 98px;
+  display: flex;
+  gap: 4px;
+}
+
+/* 4×2 warning-light grid under the tachometer, y 404 */
 .slot--lamps {
-  left: 116px;
+  left: 156px;
   top: 404px;
 }
 
@@ -95,18 +105,19 @@ html,
   height: 35px;
 }
 
-/* Figma: speed at x 944 y 409, about 76×47 (digits scaled down from 48px) */
+/* Speed, bottom right: 15% larger than the Figma 76×47, with the end of
+   "km/h" on the tachometer's right edge (x 1086) */
 .slot--speed {
-  left: 944px;
-  top: 405px;
-  transform: scale(0.66);
+  left: 942.5px;
+  top: 402px;
+  transform: scale(0.759);
   transform-origin: top left;
   display: flex;
   align-items: baseline;
   gap: 8px;
 }
 
-/* Sizes are before the 0.66 scale: ~12px on screen.
+/* Sizes are before the 0.759 scale: ~14px on screen.
    Nudged down so its letters sit on the same line as the digits' bottom
    segments (the 7-segment glyphs reach below the text baseline). */
 .speed-unit {
@@ -119,9 +130,11 @@ html,
   opacity: 0.6;
 }
 
-/* Roller odometer, bottom center (approved preview) */
+/* Roller odometer, bottom center (approved preview). Kept dim: it's
+   reference info, not something to read while driving. */
 .slot--odo {
   left: 640px;
   top: 417px;
   transform: translateX(-50%);
+  opacity: 0.5;
 }

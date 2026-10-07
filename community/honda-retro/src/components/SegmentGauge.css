@@ -133,3 +133,82 @@
     opacity: 0.65;
   }
 }
+
+/* --- Left side: lambda and oil pressure ---
+   Same column as the right gauges, plus a small label under the value. */
+
+.seg-gauge__tag {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font: 600 8px/1 'Rubik', sans-serif;
+  letter-spacing: 0.12em;
+}
+
+/* Lambda: RICA / OK / POBRE pill */
+.seg-gauge__tag[data-s] {
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: #000;
+  background: rgb(255, 214, 102);
+}
+
+.seg-gauge__tag[data-s='rich'] {
+  background: rgb(94, 200, 255);
+}
+
+.seg-gauge__tag[data-s='lean'] {
+  background: rgb(255, 156, 69);
+}
+
+.seg-gauge__tag[data-s='bad'] {
+  background: rgb(255, 69, 69);
+}
+
+/* No data yet (no CAN): no pill */
+.seg-gauge__tag:empty {
+  display: none;
+}
+
+/* Oil: plain unit */
+.seg-gauge__tag--unit {
+  padding: 1px 0;
+  color: #6d6a5f;
+}
+
+/* Peak memory: leanest lambda (above the fill) / lowest oil (inside it) */
+.seg-gauge__seg.is-peak {
+  background: rgb(255, 156, 69);
+  box-shadow: 0 0 6px rgba(255, 156, 69, 0.6);
+  opacity: 1;
+}
+
+.seg-gauge--oil .seg-gauge__seg.is-peak {
+  background: rgb(255, 69, 69);
+  box-shadow: 0 0 6px rgba(255, 69, 69, 0.6);
+}
+
+/* Lean under load / low oil pressure: red fill (from JS), pulsing icon */
+.seg-gauge.is-alert .seg-gauge__icon {
+  color: #ff4545;
+  filter: drop-shadow(0 0 4px rgba(255, 69, 69, 0.85));
+  opacity: 1;
+  animation: seg-gauge-low 1.2s ease-in-out infinite;
+}
+
+.seg-gauge.is-alert .seg-gauge__value {
+  color: #ff4545;
+}
+
+/* --- Dimming: a gauge in its normal range steps back a little --- */
+
+.seg-gauge {
+  position: relative;
+  transition: opacity 0.5s ease;
+}
+
+.seg-gauge.is-calm {
+  opacity: 0.65;
+}
